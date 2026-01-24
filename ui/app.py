@@ -1,11 +1,13 @@
 # ui/app.py
-import sqlite3
 import tkinter as tk
+from utils.db import SafeConnection, create_connection
 from ui.login_view import LoginView
 from ui.login_controller import LoginController
 from ui.dashboard_view import DashboardView
 from ui.dashboard_controller import DashboardController
 from tkinter import messagebox
+
+conn_factory = create_connection
 
 class App(tk.Tk):
     def __init__(self, conn_factory):
@@ -50,12 +52,6 @@ class App(tk.Tk):
 
     def _show_error(self, msg):
         print("ERROR:", msg)
-
-def conn_factory():
-    conn = sqlite3.connect("TiendaPernos.db")
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
 
 if __name__ == "__main__":
     App(conn_factory).mainloop()

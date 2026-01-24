@@ -31,7 +31,7 @@ class DashboardView(tk.Frame):
         top_bar = tk.Frame(self)
         top_bar.pack(fill="x")
 
-        tk.Label(top_bar, text=f"Usuario: {self.user['usuario']} ({self.user['rol']})").pack(side="left", padx=10)
+        tk.Label(top_bar, text=f"Usuario: {self.user['id_usuario']} ({self.user['rol']})").pack(side="left", padx=10)
         tk.Button(top_bar, text="Cerrar sesión", command=self._logout).pack(side="right", padx=10)
 
         # --- Notebook con pestañas ---

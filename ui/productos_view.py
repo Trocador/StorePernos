@@ -1,3 +1,4 @@
+# ui/productos_view.py
 import tkinter as tk
 from tkinter import ttk
 from ui import alerts
@@ -52,12 +53,12 @@ class ProductosView(tk.Frame):
         tk.Button(self, text="Crear producto", command=self._crear).grid(row=9, column=0, columnspan=2, pady=10)
 
         # --- Listado de productos ---
-        self.tree = ttk.Treeview(
-            self,
-            columns=("id", "tipo", "medida", "largo", "material", "precio_unidad", "precio_kilo", "stock", "proveedor"),
-            show="headings"
-        )
-        self.tree.heading("id", text="ID")
+        self.tree = ttk.Treeview(self, columns=(
+            "tipo", "medida", "largo", "material",
+            "precio_unidad", "precio_kilo",
+            "stock", "stock_minimo", "proveedor"
+        ), show="headings")
+
         self.tree.heading("tipo", text="Tipo")
         self.tree.heading("medida", text="Medida")
         self.tree.heading("largo", text="Largo")
@@ -65,7 +66,9 @@ class ProductosView(tk.Frame):
         self.tree.heading("precio_unidad", text="Precio Unidad")
         self.tree.heading("precio_kilo", text="Precio Kilo")
         self.tree.heading("stock", text="Stock")
+        self.tree.heading("stock_minimo", text="Stock Mínimo")
         self.tree.heading("proveedor", text="Proveedor")
+
 
         self.tree.grid(row=10, column=0, columnspan=2, sticky="nsew", pady=10)
 
@@ -106,15 +109,9 @@ class ProductosView(tk.Frame):
             self.tree.delete(row)
 
         productos = self.controller.listar()
-        for p in productos:
+        for row in productos:
             self.tree.insert("", "end", values=(
-                p["id_producto"],
-                p["tipo"],
-                p["medida"],
-                p["largo"],
-                p["material"],
-                p["precio_unidad"],
-                p["precio_kilo"],
-                p["stock"],
-                p["id_proveedor"]
-            ))
+            row["tipo"], row["medida"], row["largo"], row["material"],
+            row["precio_unidad"], row["precio_kilo"],
+            row["stock"], row["stock_minimo"], row["proveedor"]  # ✅ nombre
+        ))

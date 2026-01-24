@@ -8,7 +8,11 @@ def create_usuario(conn, usuario):
 
 
 def get_usuario(conn, usuario):
-    sql = "SELECT * FROM usuarios WHERE usuario=?"
+    sql = """
+    SELECT id_usuario, usuario, password_hash, rol, activo
+    FROM usuarios
+    WHERE usuario=?
+    """
     return conn.execute(sql, (usuario,)).fetchone()
 
 def update_usuario(conn, usuario):
@@ -22,5 +26,5 @@ def deactivate_usuario(conn, id_usuario):
     conn.execute(sql, (id_usuario,))
 
 def list_usuarios(conn):
-    sql = "SELECT * FROM usuarios"
+    sql = "SELECT id_usuario, usuario, rol, activo FROM usuarios"
     return conn.execute(sql).fetchall()

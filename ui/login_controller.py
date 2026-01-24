@@ -1,5 +1,6 @@
 # ui/login_controller.py
 from utils.security import verify_password
+from database.repositories import usuarios_repo
 
 class LoginController:
     def __init__(self, conn_factory, on_success):
@@ -9,12 +10,7 @@ class LoginController:
     def login(self, usuario, password):
         try:
             with self.conn_factory() as conn:
-                sql = """
-                SELECT id_usuario, usuario, password_hash, rol
-                FROM usuarios
-                WHERE usuario = ?
-                """
-                row = conn.execute(sql, (usuario,)).fetchone()
+                row = usuarios_repo.get_usuario(conn, usuario)
 
                 if row and verify_password(password, row["password_hash"]):
                     user = {

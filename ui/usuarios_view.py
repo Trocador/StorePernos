@@ -33,10 +33,10 @@ class UsuariosView(tk.Frame):
         # --- Listado de usuarios ---
         self.tree = ttk.Treeview(
             self,
-            columns=("id", "usuario", "rol"),
+            columns=("id_usuario", "usuario", "rol"),
             show="headings"
         )
-        self.tree.heading("id", text="ID")
+        self.tree.heading("id_usuario", text="ID Usuario")
         self.tree.heading("usuario", text="Usuario")
         self.tree.heading("rol", text="Rol")
         self.tree.grid(row=4, column=0, columnspan=2, sticky="nsew", pady=10)

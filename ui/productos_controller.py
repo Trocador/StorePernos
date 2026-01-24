@@ -8,15 +8,28 @@ class ProductosController:
         self.on_info = on_info
         self.on_error = on_error
 
-    def crear(self, tipo, medida, largo, material, precio, stock, id_proveedor):
+    def crear(self, tipo, medida, largo, material,
+          precio_unidad, precio_kilo,
+          stock, stock_minimo, id_proveedor):
         try:
-            with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
-                productos_repo.create_producto(conn, (tipo, medida, largo, material, precio, stock, id_proveedor))
-            self.on_info("Producto creado")
+            with self.conn_factory() as conn:
+                sql = """
+                INSERT INTO productos
+                (tipo, medida, largo, material,
+                precio_unidad, precio_kilo,
+                stock, stock_minimo, id_proveedor)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+                conn.execute(sql, (
+                    tipo, medida, largo, material,
+                    precio_unidad, precio_kilo,
+                    stock, stock_minimo, id_proveedor
+                ))
             return True
         except Exception as e:
-            self.on_error(str(e))
+            self.on_error(f"Error creando producto: {e}")
             return False
+
 
     def editar(self, id_producto, **fields):
         if not fields:
@@ -42,9 +55,21 @@ class ProductosController:
         self.on_info("Producto eliminado")
         return True
 
-    def listar(self, tipo=None):
-        with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
-            return productos_repo.list_productos(conn, tipo)
+    def listar(self):
+        try:
+            with SafeConnection(lambda: self.conn_factory()) as conn:
+                sql = """
+                SELECT p.id_producto, p.tipo, p.medida, p.largo, p.material,
+                    p.precio_unidad, p.precio_kilo,
+                    p.stock, p.stock_minimo,
+                    pr.nombre AS proveedor
+                FROM productos p
+                JOIN proveedores pr ON p.id_proveedor = pr.id_proveedor
+                """
+                return conn.execute(sql).fetchall()
+        except Exception as e:
+            self.on_error(f"Error listando productos: {e}")
+            return []
 
     def obtener(self, id_producto):
         with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
