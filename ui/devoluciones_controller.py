@@ -1,0 +1,34 @@
+# ui/devoluciones_controller.py
+from database.repositories import devoluciones_repo
+from utils.db import SafeConnection
+
+class DevolucionesController:
+    def __init__(self, conn_factory, on_info, on_error):
+        self.conn_factory = conn_factory
+        self.on_info = on_info
+        self.on_error = on_error
+
+    def registrar(self, id_venta, id_producto, cantidad, id_usuario, observacion=""):
+        try:
+            with SafeConnection(lambda: self.conn_factory()) as conn:
+                devoluciones_repo.create_devolucion(
+                    conn,
+                    id_venta,
+                    id_usuario,
+                    observacion,
+                    id_producto,
+                    cantidad
+                )
+            self.on_info("Devolución registrada")
+            return True
+        except Exception as e:
+            self.on_error(f"Error al registrar devolución: {e}")
+            return False
+
+    def listar(self):
+        with SafeConnection(lambda: self.conn_factory()) as conn:
+            return devoluciones_repo.list_devoluciones(conn)
+
+    def detalle(self, id_devolucion):
+        with SafeConnection(lambda: self.conn_factory()) as conn:
+            return devoluciones_repo.list_detalle(conn, id_devolucion)

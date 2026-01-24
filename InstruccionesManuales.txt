@@ -1,0 +1,4 @@
+Para crear tarea semanal de backup drive:
+- Crea una tarea programada.
+- Programa ejecución semanal.
+- Acción: ejecutar python.exe con argumento inventario_pernos\utils\backup_drive.py.
