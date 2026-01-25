@@ -115,3 +115,14 @@ class ProductosView(tk.Frame):
             row["precio_unidad"], row["precio_kilo"],
             row["stock"], row["stock_minimo"], row["proveedor"]  # ✅ nombre
         ))
+
+    def actualizar_productos(self, productos):
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        for p in productos:
+            self.tree.insert("", "end", values=(
+                p["tipo"], p["medida"], p["largo"], p["material"],
+                p["precio_unidad"], p["precio_kilo"],
+                p["stock"], p["stock_minimo"], p["proveedor"]
+            ))

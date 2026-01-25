@@ -13,17 +13,19 @@ class VentasView(tk.Frame):
 
     def _build(self):
         # --- Formulario de registro ---
-        tk.Label(self, text="ID producto").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        self.id_producto_var = tk.IntVar(value=1)
-        tk.Spinbox(self, from_=1, to=9999, textvariable=self.id_producto_var).grid(row=0, column=1)
+        tk.Label(self, text="Producto").grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        productos = self.controller.listar_productos()
+        productos_nombres = [f"{p['id_producto']} - {p['tipo']} {p['medida']} {p['largo']}" for p in productos]
+        self.producto_combo = ttk.Combobox(self, values=productos_nombres, state="readonly")
+        self.producto_combo.grid(row=0, column=1)
 
         tk.Label(self, text="Cantidad").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.cantidad_var = tk.IntVar(value=1)
         tk.Spinbox(self, from_=1, to=1000, textvariable=self.cantidad_var).grid(row=1, column=1)
 
-        tk.Label(self, text="Precio unitario").grid(row=2, column=0, sticky="e", padx=5, pady=5)
-        self.precio_var = tk.DoubleVar(value=0.0)
-        tk.Entry(self, textvariable=self.precio_var).grid(row=2, column=1)
+        tk.Label(self, text="Total a pagar").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        self.total_var = tk.DoubleVar(value=0.0)
+        tk.Entry(self, textvariable=self.total_var, state="readonly").grid(row=2, column=1)
 
         tk.Label(self, text="Tipo venta").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         self.tipo_venta_var = tk.StringVar(value="unidad")
@@ -74,14 +76,29 @@ class VentasView(tk.Frame):
         self._cargar_ventas()
 
     def _agregar_item(self):
+        seleccionado = self.producto_combo.get()
+        if not seleccionado:
+            alerts.error("Debe seleccionar un producto")
+            return
+        id_producto = int(seleccionado.split(" - ")[0])
+        producto = self.controller.get_producto(id_producto)
+        if self.tipo_venta_var.get() == "unidad":
+            precio = producto["precio_unidad"]
+        else:
+            precio = producto["precio_kilo"]
         item = {
-            "id_producto": self.id_producto_var.get(),
+            "id_producto": id_producto,
             "cantidad": self.cantidad_var.get(),
             "tipo_venta": self.tipo_venta_var.get(),
-            "precio_unitario": self.precio_var.get(),
-            "subtotal": self.cantidad_var.get() * self.precio_var.get()
+            "precio_unitario": precio,
+            "subtotal": self.cantidad_var.get() * precio
         }
+        
+        # 🔥 Agregar ítem a la lista
         self.detalle_actual.append(item)
+        # 🔥 Actualizar el total acumulado en el campo "Total a pagar"
+        self.total_var.set(sum(i["subtotal"] for i in self.detalle_actual))
+        # Mostrar aviso
         alerts.info(f"Item agregado: {item}")
 
     def _registrar(self):
@@ -93,6 +110,7 @@ class VentasView(tk.Frame):
         if ok:
             alerts.info("Venta registrada correctamente")
             self.detalle_actual.clear()
+            self.total_var.set(0.0)
             self._cargar_ventas()
         else:
             alerts.error("Error al registrar venta")

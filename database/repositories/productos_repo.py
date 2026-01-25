@@ -24,10 +24,26 @@ def deactivate_producto(conn, id_producto):
     sql = "UPDATE productos SET activo=0 WHERE id_producto=?"
     conn.execute(sql, (id_producto,))
 
-def list_productos(conn, tipo=None):
-    if tipo:
-        return conn.execute("SELECT * FROM productos WHERE tipo = ? AND activo = 1", (tipo,)).fetchall()
-    return conn.execute("SELECT * FROM productos WHERE activo = 1").fetchall()
+def list_productos(conn):
+    sql = """
+        SELECT 
+            p.id_producto,
+            p.tipo,
+            p.medida,
+            p.largo,
+            p.material,
+            p.precio_unidad,
+            p.precio_kilo,
+            p.stock,
+            p.stock_minimo,
+            pr.nombre AS proveedor
+        FROM productos p
+        LEFT JOIN proveedores pr ON pr.id_proveedor = p.id_proveedor
+        WHERE p.activo = 1
+    """
+    return conn.execute(sql).fetchall()
+
+
 
 def sumar_stock(conn, id_producto, cantidad):
     sql = "UPDATE productos SET stock = stock + ? WHERE id_producto = ?"
@@ -36,3 +52,7 @@ def sumar_stock(conn, id_producto, cantidad):
 def restar_stock(conn, id_producto, cantidad):
     sql = "UPDATE productos SET stock = stock - ? WHERE id_producto = ?"
     conn.execute(sql, (cantidad, id_producto))
+
+def get_producto(conn, id_producto):
+    sql = "SELECT * FROM productos WHERE id_producto=?"
+    return conn.execute(sql, (id_producto,)).fetchone()

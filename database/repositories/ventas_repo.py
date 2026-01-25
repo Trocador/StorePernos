@@ -23,8 +23,8 @@ def list_ventas(conn, fecha_desde=None, fecha_hasta=None):
     return conn.execute(sql, params).fetchall()
 
 def get_venta_detalle(conn, id_venta):
-    sql = """SELECT vd.id_producto, p.tipo, vd.cantidad, vd.precio_unitario
-             FROM venta_detalle vd
-             JOIN productos p ON p.id_producto = vd.id_producto
-             WHERE vd.id_venta = ?"""
+    sql = """SELECT vd.id_detalle, vd.id_producto, vd.cantidad, vd.tipo_venta, vd.precio_unitario, vd.subtotal
+            FROM venta_detalle vd
+            JOIN productos p ON p.id_producto = vd.id_producto
+            WHERE vd.id_venta = ?"""
     return conn.execute(sql, (id_venta,)).fetchall()

@@ -47,9 +47,14 @@ class DashboardView(tk.Frame):
             on_info=self.controller.on_info,
             on_error=self.controller.on_error
         )
+
         with SafeConnection(lambda: self.controller.conn_factory()) as conn:
             proveedores = [(p["id_proveedor"], p["nombre"]) for p in proveedores_repo.list_proveedores(conn)]
-        notebook.add(ProductosView(notebook, productos_controller, proveedores), text="Productos")
+
+        # ✅ GUARDAR LA VISTA COMO ATRIBUTO
+        self.productos_view = ProductosView(notebook, productos_controller, proveedores)
+        notebook.add(self.productos_view, text="Productos")
+
         
         
         # Proveedores
@@ -64,7 +69,8 @@ class DashboardView(tk.Frame):
         ventas_controller = VentasController(
             conn_factory=self.controller.conn_factory,
             on_info=self.controller.on_info,
-            on_error=self.controller.on_error
+            on_error=self.controller.on_error,
+            on_productos_updated=self.refrescar_productos  # 🔥 pasar callback
         )
         notebook.add(VentasView(notebook, ventas_controller, self.user), text="Ventas")
 
@@ -116,6 +122,12 @@ class DashboardView(tk.Frame):
             )
             usuarios_view = UsuariosView(notebook, usuarios_controller, self.user)
             notebook.add(usuarios_view, text="Usuarios")
+
+    def refrescar_productos(self):
+        with SafeConnection(lambda: self.controller.conn_factory()) as conn:
+            productos = productos_repo.list_productos(conn)
+        self.productos_view.actualizar_productos(productos)
+
     def _logout(self):
         # Destruir dashboard y volver al login
         self.destroy()

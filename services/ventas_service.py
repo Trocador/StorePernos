@@ -1,5 +1,6 @@
 # services/ventas_service.py
 
+from datetime import datetime
 from database.connection import get_connection
 from database.repositories import ventas_repo, productos_repo
 
@@ -11,31 +12,23 @@ def registrar_venta(id_usuario, detalles, conn=None):
             return _registrar_venta(c, id_usuario, detalles)
 
 
-def _registrar_venta(c, id_usuario, detalles):
-    total = 0
-    for d in detalles:
-        producto = productos_repo.get_producto(c, d["id_producto"])
-        if not producto:
-            raise ValueError("Producto no encontrado")
-        if producto["stock"] < d["cantidad"]:
-            raise ValueError("Stock insuficiente")
-
-        d["subtotal"] = d["cantidad"] * d["precio_unitario"]
-        total += d["subtotal"]
-
-    id_venta = ventas_repo.create_venta(c, ("2026-01-21", id_usuario, total))
+def _registrar_venta(conn, id_usuario, detalles):
+    total = sum(d["subtotal"] for d in detalles)
+    id_venta = ventas_repo.create_venta(conn, (datetime.now(), id_usuario, total))
 
     for d in detalles:
+        # insertar detalle
         sql = """INSERT INTO venta_detalle(id_venta, id_producto, cantidad, tipo_venta, precio_unitario, subtotal)
-                 VALUES (?, ?, ?, ?, ?, ?)"""
-        c.execute(sql, (id_venta, d["id_producto"], d["cantidad"], "unidad", d["precio_unitario"], d["subtotal"]))
+                VALUES (?, ?, ?, ?, ?, ?)"""
+        conn.execute(sql, (id_venta, d["id_producto"], d["cantidad"], d["tipo_venta"], d["precio_unitario"], d["subtotal"]))
 
-        producto = productos_repo.get_producto(c, d["id_producto"])
-        nuevo_stock = producto["stock"] - d["cantidad"]
-        productos_repo.update_stock(c, d["id_producto"], nuevo_stock)
+        # 🔥 validar stock antes de actualizar
+        producto = productos_repo.get_producto(conn, d["id_producto"])
+        if producto["stock"] < d["cantidad"]:
+            raise ValueError(f"Stock insuficiente para producto {producto['id_producto']}")
 
-        c.execute("""INSERT INTO movimientos_stock(id_producto, tipo, cantidad, fecha, referencia, id_usuario)
-                     VALUES (?, 'venta', ?, CURRENT_TIMESTAMP, ?, ?)""",
-                  (d["id_producto"], d["cantidad"], f"venta:{id_venta}", id_usuario))
+        # actualizar stock
+        conn.execute("UPDATE productos SET stock = stock - ? WHERE id_producto = ?", (d["cantidad"], d["id_producto"]))
 
+    conn.commit()
     return id_venta
