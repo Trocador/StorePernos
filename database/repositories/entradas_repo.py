@@ -1,16 +1,15 @@
 # database/repositories/entradas_repo.py
-def create_entrada(conn, id_proveedor, id_usuario, observacion, id_producto, cantidad):
-    # Crear cabecera
+def create_entrada(conn, id_proveedor, id_usuario, observacion):
     sql = "INSERT INTO entradas (id_proveedor, id_usuario, observacion) VALUES (?, ?, ?)"
     cur = conn.execute(sql, (id_proveedor, id_usuario, observacion))
-    id_entrada = cur.lastrowid
+    return cur.lastrowid
 
-    # Crear detalle
-    sql_det = """INSERT INTO entrada_detalle (id_entrada, id_producto, cantidad, tipo_ingreso, precio_compra)
-                 VALUES (?, ?, ?, ?, ?)"""
-    conn.execute(sql_det, (id_entrada, id_producto, cantidad, "unidad", 0.0))
 
-    return id_entrada
+# Crear detalle
+def create_entrada_detalle(conn, id_entrada, id_producto, cantidad, tipo_ingreso, precio_compra):
+    sql = """INSERT INTO entrada_detalle (id_entrada, id_producto, cantidad, tipo_ingreso, precio_compra)
+             VALUES (?, ?, ?, ?, ?)"""
+    conn.execute(sql, (id_entrada, id_producto, cantidad, tipo_ingreso, precio_compra))
 
 def list_entradas(conn):
     sql = """

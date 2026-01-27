@@ -70,7 +70,7 @@ class DashboardView(tk.Frame):
             conn_factory=self.controller.conn_factory,
             on_info=self.controller.on_info,
             on_error=self.controller.on_error,
-            on_productos_updated=self.refrescar_productos  # 🔥 pasar callback
+            on_productos_updated=self.refrescar_productos
         )
         notebook.add(VentasView(notebook, ventas_controller, self.user), text="Ventas")
 
@@ -78,9 +78,11 @@ class DashboardView(tk.Frame):
         entradas_controller = EntradasController(
             conn_factory=self.controller.conn_factory,
             on_info=self.controller.on_info,
-            on_error=self.controller.on_error
+            on_error=self.controller.on_error,
+            on_productos_updated=self.refrescar_productos
         )
-        # ✅ obtener proveedores y productos
+
+        # obtener proveedores y productos
         with self.controller.conn_factory() as conn:
             proveedores = proveedores_repo.get_all(conn)
             productos = productos_repo.get_all(conn)
@@ -101,7 +103,7 @@ class DashboardView(tk.Frame):
             on_error=self.controller.on_error
         )
 
-        # ✅ obtener productos para el combo
+        # obtener productos para el combo
         with self.controller.conn_factory() as conn:
             productos = productos_repo.get_all(conn)
 
@@ -114,14 +116,14 @@ class DashboardView(tk.Frame):
         notebook.add(devoluciones_view, text="Devoluciones")
 
         # --- Usuarios ---
-        if self.user["rol"] == "admin":   # ✅ solo admin puede ver esta pestaña
+        if self.user["rol"] == "admin":   # solo admin puede ver esta pestaña
             usuarios_controller = UsuariosController(
                 conn_factory=self.controller.conn_factory,
                 on_info=self.controller.on_info,
                 on_error=self.controller.on_error
             )
-            usuarios_view = UsuariosView(notebook, usuarios_controller, self.user)
-            notebook.add(usuarios_view, text="Usuarios")
+        usuarios_view = UsuariosView(notebook, usuarios_controller, self.user)
+        notebook.add(usuarios_view, text="Usuarios")
 
     def refrescar_productos(self):
         with SafeConnection(lambda: self.controller.conn_factory()) as conn:
@@ -129,6 +131,5 @@ class DashboardView(tk.Frame):
         self.productos_view.actualizar_productos(productos)
 
     def _logout(self):
-        # Destruir dashboard y volver al login
         self.destroy()
         self.on_logout()

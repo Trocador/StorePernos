@@ -19,19 +19,3 @@ def registrar_entrada(id_proveedor, id_usuario, observacion, detalles, conn):
         productos_repo.sumar_stock(conn, d["id_producto"], d["cantidad"])
 
     return id_entrada
-
-
-
-def _registrar_entrada(c, id_proveedor, id_usuario, observacion, detalles):
-    id_entrada = entradas_repo.create_entrada(c, (None, id_proveedor, id_usuario, observacion))
-
-    for d in detalles:
-        sql = """INSERT INTO entrada_detalle(id_entrada, id_producto, cantidad, precio_compra)
-                 VALUES (?, ?, ?, ?)"""
-        c.execute(sql, (id_entrada, d["id_producto"], d["cantidad"], d["precio_compra"]))
-
-        producto = productos_repo.get_producto(c, d["id_producto"])
-        nuevo_stock = producto["stock"] + d["cantidad"]
-        productos_repo.update_stock(c, d["id_producto"], nuevo_stock)
-
-    return id_entrada
