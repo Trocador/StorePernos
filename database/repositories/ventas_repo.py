@@ -28,3 +28,12 @@ def get_venta_detalle(conn, id_venta):
             JOIN productos p ON p.id_producto = vd.id_producto
             WHERE vd.id_venta = ?"""
     return conn.execute(sql, (id_venta,)).fetchall()
+
+def list_ventas_por_fecha(conn, fecha):
+    sql = """
+    SELECT id_venta, fecha, total
+    FROM ventas
+    WHERE DATE(fecha) = DATE(?)
+    ORDER BY fecha DESC
+    """
+    return conn.execute(sql, (fecha,)).fetchall()

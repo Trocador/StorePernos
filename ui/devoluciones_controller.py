@@ -1,5 +1,5 @@
 # ui/devoluciones_controller.py
-from database.repositories import devoluciones_repo
+from database.repositories import devoluciones_repo, ventas_repo
 from utils.db import SafeConnection
 
 class DevolucionesController:
@@ -32,3 +32,7 @@ class DevolucionesController:
     def detalle(self, id_devolucion):
         with SafeConnection(lambda: self.conn_factory()) as conn:
             return devoluciones_repo.list_detalle(conn, id_devolucion)
+
+    def ventas_por_fecha(self, fecha):
+        with SafeConnection(lambda: self.conn_factory()) as conn:
+            return ventas_repo.list_ventas_por_fecha(conn, fecha)
