@@ -32,8 +32,8 @@ class VentasView(tk.Frame):
         ttk.Combobox(self, textvariable=self.tipo_venta_var, values=["unidad","kilo"], state="readonly").grid(row=3, column=1)
 
         tk.Button(self, text="Agregar ítem", command=self._agregar_item).grid(row=4, column=0, pady=10)
-        tk.Button(self, text="Finalizar venta", command=self._registrar).grid(row=4, column=1, pady=10)
-
+        tk.Button(self, text="Resetear ítems", command=self._reset_items).grid(row=4, column=1, pady=10)
+        tk.Button(self, text="Finalizar venta", command=self._registrar).grid(row=4, column=2, pady=10)
         # --- Listado de ventas ---
         self.tree_ventas = ttk.Treeview(self, columns=("id", "usuario", "fecha", "total"), show="headings")
         self.tree_ventas.heading("id", text="ID Venta")
@@ -49,11 +49,12 @@ class VentasView(tk.Frame):
         # --- Listado de detalle ---
         self.tree_detalle = ttk.Treeview(
             self,
-            columns=("id_detalle", "id_producto", "cantidad", "tipo_venta", "precio_unitario", "subtotal"),
+            columns=("id_detalle", "id_producto", "producto", "cantidad", "tipo_venta", "precio_unitario", "subtotal"),
             show="headings"
         )
         self.tree_detalle.heading("id_detalle", text="ID Detalle")
-        self.tree_detalle.heading("id_producto", text="Producto")
+        self.tree_detalle.heading("id_producto", text="ID Producto")
+        self.tree_detalle.heading("producto", text="Producto")
         self.tree_detalle.heading("cantidad", text="Cantidad")
         self.tree_detalle.heading("tipo_venta", text="Tipo Venta")
         self.tree_detalle.heading("precio_unitario", text="Precio Unitario")
@@ -137,8 +138,14 @@ class VentasView(tk.Frame):
             self.tree_detalle.insert("", "end", values=(
                 d["id_detalle"],
                 d["id_producto"],
+                d["producto"],   # 🔥 ahora muestra nombre
                 d["cantidad"],
                 d["tipo_venta"],
                 d["precio_unitario"],
                 d["subtotal"]
             ))
+
+    def _reset_items(self):
+        self.detalle_actual.clear()
+        self.total_var.set(0.0)
+        alerts.info("Ítems de la venta reseteados")
