@@ -48,9 +48,11 @@ class App(tk.Tk):
 
     # Métodos auxiliares para mensajes
     def _show_info(self, msg):
+        messagebox.showinfo("Información", msg)
         print("INFO:", msg)
 
     def _show_error(self, msg):
+        messagebox.showerror("Error", msg)
         print("ERROR:", msg)
 
 if __name__ == "__main__":

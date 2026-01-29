@@ -15,7 +15,9 @@ from ui.productos_controller import ProductosController
 from ui.ventas_controller import VentasController
 from ui.proveedores_controller import ProveedoresController
 from ui.proveedores_view import ProveedoresView
+from utils import backup
 from utils.db import SafeConnection
+from utils.backup import create_backup, restore_backup
 from database.repositories import proveedores_repo, productos_repo
 
 class DashboardView(tk.Frame):
@@ -30,6 +32,9 @@ class DashboardView(tk.Frame):
         # --- Barra superior con botón de logout ---
         top_bar = tk.Frame(self)
         top_bar.pack(fill="x")
+        
+        tk.Button(top_bar, text="Crear Backup", command=self._crear_backup).pack(side="right", padx=10)
+        tk.Button(top_bar, text="Restaurar Backup", command=self._restaurar_backup).pack(side="right", padx=10)
 
         tk.Label(top_bar, text=f"Usuario: {self.user['id_usuario']} ({self.user['rol']})").pack(side="left", padx=10)
         tk.Button(top_bar, text="Cerrar sesión", command=self._logout).pack(side="right", padx=10)
@@ -133,3 +138,41 @@ class DashboardView(tk.Frame):
     def _logout(self):
         self.destroy()
         self.on_logout()
+
+    def _crear_backup(self):
+        try:
+            path = backup.create_backup()
+            self.controller.on_info(f"Backup creado en {path}")
+        except Exception as e:
+            self.controller.on_error(f"Error al crear backup: {e}")
+
+    def _restaurar_backup(self):
+        try:
+            import glob
+            from tkinter import filedialog
+            from config.settings import BACKUP_DIR
+            from utils import backup
+
+            #  Buscar todos los backups disponibles
+            files = sorted(glob.glob(str(BACKUP_DIR / "inventario_*.db")))
+            if not files:
+                self.controller.on_error("No hay backups disponibles")
+                return
+
+            #  Abrir diálogo para que el usuario elija el backup
+            backup_file = filedialog.askopenfilename(
+                title="Seleccionar backup para restaurar",
+                initialdir=BACKUP_DIR,
+                filetypes=[("Archivos de base de datos", "inventario_*.db")]
+            )
+
+            if not backup_file:
+                self.controller.on_info("Restauración cancelada por el usuario")
+                return
+
+            #  Restaurar el backup seleccionado
+            backup.restore_backup(backup_file)
+            self.controller.on_info(f"Backup restaurado correctamente desde {backup_file}")
+
+        except Exception as e:
+            self.controller.on_error(f"Error al restaurar backup: {e}")
