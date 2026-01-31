@@ -37,9 +37,12 @@ class DevolucionesView(tk.Frame):
         self.producto_combo = ttk.Combobox(
             self,
             values=[f"{pid} - {nombre}" for pid, nombre in self.productos],
-            state="readonly"
+            state="readonly", width=50
         )
-        self.producto_combo.grid(row=2, column=1)
+        self.producto_combo.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
+        # permitir expansión
+        self.grid_columnconfigure(1, weight=1)
+        
 
         tk.Label(self, text="Cantidad").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         self.cantidad_var = tk.DoubleVar(value=1)
