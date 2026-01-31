@@ -13,15 +13,15 @@ class ProductosView(tk.Frame):
     def _build(self):
         # --- Formulario de creación ---
         tk.Label(self, text="Tipo de producto").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        tipos = ["tuerca", "perno"]
+        tipos = ["tuerca", "perno", "tornillo", "varilla", "remache", "arandela"]
         self.tipo_var = tk.StringVar(value=tipos[0])
         ttk.Combobox(self, textvariable=self.tipo_var, values=tipos, state="readonly").grid(row=0, column=1)
 
-        tk.Label(self, text="Medida").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(self, text="Abreviatura").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.medida_var = tk.StringVar(value="M8")
         tk.Entry(self, textvariable=self.medida_var).grid(row=1, column=1)
 
-        tk.Label(self, text="Largo").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(self, text="Cabeza y métrica").grid(row=2, column=0, sticky="e", padx=5, pady=5)
         self.largo_var = tk.StringVar(value="30mm")
         tk.Entry(self, textvariable=self.largo_var).grid(row=2, column=1)
 
@@ -60,8 +60,8 @@ class ProductosView(tk.Frame):
         ), show="headings")
 
         self.tree.heading("tipo", text="Tipo")
-        self.tree.heading("medida", text="Medida")
-        self.tree.heading("largo", text="Largo")
+        self.tree.heading("medida", text="Abreviatura")
+        self.tree.heading("largo", text="Cabeza y metrica")
         self.tree.heading("material", text="Material")
         self.tree.heading("precio_unidad", text="Precio Unidad")
         self.tree.heading("precio_kilo", text="Precio Kilo")

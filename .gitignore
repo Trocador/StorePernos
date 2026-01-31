@@ -21,3 +21,8 @@ env/
 Thumbs.db
 
 dist/
+Items.xlsx
+build/
+productos.txt
+GenSQLDB.py
+main.spec
