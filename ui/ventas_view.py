@@ -16,8 +16,11 @@ class VentasView(tk.Frame):
         tk.Label(self, text="Producto").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         productos = self.controller.listar_productos()
         productos_nombres = [f"{p['id_producto']} - {p['tipo']} {p['medida']} {p['largo']}" for p in productos]
-        self.producto_combo = ttk.Combobox(self, values=productos_nombres, state="readonly")
-        self.producto_combo.grid(row=0, column=1)
+        self.producto_combo = ttk.Combobox(self, values=productos_nombres, state="readonly", width=50)
+        self.producto_combo.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
+        # permitir expansión
+        self.grid_columnconfigure(1, weight=1)
+
 
         tk.Label(self, text="Cantidad").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.cantidad_var = tk.IntVar(value=1)
