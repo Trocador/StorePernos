@@ -43,34 +43,56 @@ class DashboardView(tk.Frame):
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
 
-        # aquí añades tus pestañas (Entradas, Devoluciones, Usuarios, etc.)
-        # notebook.add(...)
+        # --- Pestañas según rol ---
+        if self.user["rol"] == "admin":
+            # Productos
+            productos_controller = ProductosController(
+                conn_factory=self.controller.conn_factory,
+                on_info=self.controller.on_info,
+                on_error=self.controller.on_error
+            )
+            with SafeConnection(lambda: self.controller.conn_factory()) as conn:
+                proveedores = [(p["id_proveedor"], p["nombre"]) for p in proveedores_repo.list_proveedores(conn)]
+            self.productos_view = ProductosView(notebook, productos_controller, proveedores)
+            notebook.add(self.productos_view, text="Productos")
 
-        # Productos
-        productos_controller = ProductosController(
-            conn_factory=self.controller.conn_factory,
-            on_info=self.controller.on_info,
-            on_error=self.controller.on_error
-        )
+            # Proveedores
+            proveedores_controller = ProveedoresController(
+                conn_factory=self.controller.conn_factory,
+                on_info=self.controller.on_info,
+                on_error=self.controller.on_error
+            )
+            notebook.add(ProveedoresView(notebook, proveedores_controller), text="Proveedores")
 
-        with SafeConnection(lambda: self.controller.conn_factory()) as conn:
-            proveedores = [(p["id_proveedor"], p["nombre"]) for p in proveedores_repo.list_proveedores(conn)]
+            # Entradas
+            entradas_controller = EntradasController(
+                conn_factory=self.controller.conn_factory,
+                on_info=self.controller.on_info,
+                on_error=self.controller.on_error,
+                on_productos_updated=self.refrescar_productos
+            )
+            with self.controller.conn_factory() as conn:
+                proveedores = proveedores_repo.get_all(conn)
+                productos = productos_repo.get_all(conn)
+            entradas_view = EntradasView(
+                notebook,
+                entradas_controller,
+                proveedores,
+                productos,
+                self.user
+            )
+            notebook.add(entradas_view, text="Entradas")
 
-        # ✅ GUARDAR LA VISTA COMO ATRIBUTO
-        self.productos_view = ProductosView(notebook, productos_controller, proveedores)
-        notebook.add(self.productos_view, text="Productos")
+            # Usuarios
+            usuarios_controller = UsuariosController(
+                conn_factory=self.controller.conn_factory,
+                on_info=self.controller.on_info,
+                on_error=self.controller.on_error
+            )
+            usuarios_view = UsuariosView(notebook, usuarios_controller, self.user)
+            notebook.add(usuarios_view, text="Usuarios")
 
-        
-        
-        # Proveedores
-        proveedores_controller = ProveedoresController(
-        conn_factory=self.controller.conn_factory,
-        on_info=self.controller.on_info,
-        on_error=self.controller.on_error
-        )
-        notebook.add(ProveedoresView(notebook, proveedores_controller), text="Proveedores")
-
-        # Ventas
+        # Ventas (visible para todos)
         ventas_controller = VentasController(
             conn_factory=self.controller.conn_factory,
             on_info=self.controller.on_info,
@@ -79,39 +101,14 @@ class DashboardView(tk.Frame):
         )
         notebook.add(VentasView(notebook, ventas_controller, self.user), text="Ventas")
 
-        # --- Entradas ---
-        entradas_controller = EntradasController(
-            conn_factory=self.controller.conn_factory,
-            on_info=self.controller.on_info,
-            on_error=self.controller.on_error,
-            on_productos_updated=self.refrescar_productos
-        )
-
-        # obtener proveedores y productos
-        with self.controller.conn_factory() as conn:
-            proveedores = proveedores_repo.get_all(conn)
-            productos = productos_repo.get_all(conn)
-
-        entradas_view = EntradasView(
-            notebook,
-            entradas_controller,
-            proveedores,
-            productos,
-            self.user
-        )
-        notebook.add(entradas_view, text="Entradas")
-
-        # --- Devoluciones ---
+        # Devoluciones (visible para todos)
         devoluciones_controller = DevolucionesController(
             conn_factory=self.controller.conn_factory,
             on_info=self.controller.on_info,
             on_error=self.controller.on_error
         )
-
-        # obtener productos para el combo
         with self.controller.conn_factory() as conn:
             productos = productos_repo.get_all(conn)
-
         devoluciones_view = DevolucionesView(
             notebook,
             devoluciones_controller,
@@ -119,16 +116,6 @@ class DashboardView(tk.Frame):
             self.user
         )
         notebook.add(devoluciones_view, text="Devoluciones")
-
-        # --- Usuarios ---
-        if self.user["rol"] == "admin":   # solo admin puede ver esta pestaña
-            usuarios_controller = UsuariosController(
-                conn_factory=self.controller.conn_factory,
-                on_info=self.controller.on_info,
-                on_error=self.controller.on_error
-            )
-        usuarios_view = UsuariosView(notebook, usuarios_controller, self.user)
-        notebook.add(usuarios_view, text="Usuarios")
 
     def refrescar_productos(self):
         with SafeConnection(lambda: self.controller.conn_factory()) as conn:
