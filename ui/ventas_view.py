@@ -1,7 +1,11 @@
 # ui/ventas_view.py
+from importlib.resources import path
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 from ui import alerts
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
 
 class VentasView(tk.Frame):
     def __init__(self, master, controller, user):
@@ -67,6 +71,15 @@ class VentasView(tk.Frame):
         scrollbar2 = ttk.Scrollbar(self, orient="vertical", command=self.tree_detalle.yview)
         self.tree_detalle.configure(yscroll=scrollbar2.set)
         scrollbar2.grid(row=6, column=2, sticky="ns")
+        
+        # 🔒 PANEL SOLO ADMIN
+        if self.user["rol"] == "admin":
+            frame_reportes = tk.LabelFrame(self, text="Reportes de Control (Admin)")
+            frame_reportes.grid(row=7, column=0, columnspan=3, sticky="ew", pady=10)
+
+            tk.Button(frame_reportes, text="Reporte del Día", command=self._reporte_dia).pack(side="left", padx=10)
+            tk.Button(frame_reportes, text="Reporte Semanal", command=self._reporte_semana).pack(side="left", padx=10)
+
 
         # Configuración de expansión
         self.grid_rowconfigure(5, weight=1)
@@ -152,3 +165,68 @@ class VentasView(tk.Frame):
         self.detalle_actual.clear()
         self.total_var.set(0.0)
         alerts.info("Ítems de la venta reseteados")
+
+    def _exportar_excel(self, resumen, ventas):
+        path = filedialog.asksaveasfilename(defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")])
+        if not path:
+            return
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Reporte Ventas"
+
+        # Encabezado resumen
+        ws.append(["Tipo Reporte", resumen["tipo"]])
+        ws.append(["Desde", resumen["fecha_inicio"]])
+        ws.append(["Hasta", resumen["fecha_fin"]])
+        ws.append([])
+        ws.append(["Total Vendido", resumen["total_vendido"]])
+        ws.append(["Ganancia (50%)", resumen["ganancia"]])
+        ws.append([])
+
+        # Detalle de ventas
+        for v in ventas:
+            venta = v["venta"]
+            ws.append([f"Venta ID {venta['id_venta']} - Usuario {venta['id_usuario']} - Fecha {venta['fecha']} - Total {venta['total']}"])
+            ws.append(["ID Detalle", "ID Producto", "Producto", "Cantidad", "Tipo Venta", "Precio Unitario", "Subtotal"])
+            for d in v["detalles"]:
+                ws.append([
+                    d["id_detalle"],
+                    d["id_producto"],
+                    d["producto"],
+                    d["cantidad"],
+                    d["tipo_venta"],
+                    d["precio_unitario"],
+                    d["subtotal"]
+                ])
+            ws.append([])  # línea en blanco entre ventas
+
+        for col in ws.columns:
+            max_length = 0
+            col_letter = get_column_letter(col[0].column)
+            for cell in col:
+                try:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            ws.column_dimensions[col_letter].width = adjusted_width
+
+        wb.save(path)
+        alerts.info("Reporte exportado correctamente")
+
+    def _reporte_dia(self):
+        resumen = self.controller.resumen_dia()
+        ventas = self.controller.ventas_dia()
+        ventas_detalladas = self.controller.ventas_con_detalle(ventas)
+        alerts.info(f"Total vendido hoy: {resumen['total_vendido']} | Ganancia: {resumen['ganancia']}")
+        self._exportar_excel(resumen, ventas_detalladas)
+
+    def _reporte_semana(self):
+        resumen = self.controller.resumen_semana()
+        ventas = self.controller.ventas_semana()
+        ventas_detalladas = self.controller.ventas_con_detalle(ventas)
+        alerts.info(f"Total vendido semana: {resumen['total_vendido']} | Ganancia: {resumen['ganancia']}")
+        self._exportar_excel(resumen, ventas_detalladas)

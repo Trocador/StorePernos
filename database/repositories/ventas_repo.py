@@ -37,9 +37,28 @@ def get_venta_detalle(conn, id_venta):
 
 def list_ventas_por_fecha(conn, fecha):
     sql = """
-    SELECT id_venta, fecha, total
+    SELECT id_venta, fecha, total, id_usuario
     FROM ventas
     WHERE DATE(fecha) = DATE(?)
     ORDER BY fecha DESC
     """
     return conn.execute(sql, (fecha,)).fetchall()
+
+def get_total_ventas_rango(conn, fecha_inicio, fecha_fin):
+    sql = """
+        SELECT IFNULL(SUM(total), 0) as total_vendido
+        FROM ventas
+        WHERE DATE(fecha) BETWEEN DATE(?) AND DATE(?)
+    """
+    row = conn.execute(sql, (fecha_inicio, fecha_fin)).fetchone()
+    return row["total_vendido"] if row else 0
+
+def list_ventas_semana(conn, fecha):
+    sql = """
+    SELECT id_venta, fecha, total, id_usuario
+    FROM ventas
+    WHERE strftime('%W', fecha) = strftime('%W', ?)
+      AND strftime('%Y', fecha) = strftime('%Y', ?)
+    ORDER BY fecha DESC
+    """
+    return conn.execute(sql, (fecha, fecha)).fetchall()
