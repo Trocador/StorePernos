@@ -17,30 +17,39 @@ class VentasView(tk.Frame):
 
     def _build(self):
         # --- Formulario de registro ---
-        tk.Label(self, text="Producto").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        productos = self.controller.listar_productos()
-        productos_nombres = [f"{p['id_producto']} - {p['tipo']} {p['medida']} {p['largo']}" for p in productos]
-        self.producto_combo = ttk.Combobox(self, values=productos_nombres, state="readonly", width=50)
-        self.producto_combo.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
-        # permitir expansión
-        self.grid_columnconfigure(1, weight=1)
+        # Campo para mostrar producto seleccionado
+        self.producto_var = tk.StringVar(value="(ningún producto seleccionado)")
+        tk.Label(self, text="Producto seleccionado:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(self, textvariable=self.producto_var, anchor="w", width=50, relief="sunken").grid(row=0, column=1, sticky="ew", padx=5, pady=5)
+        tk.Button(self, text="Buscar producto", command=self._abrir_buscador).grid(row=0, column=2, padx=5)
 
+        self.precio_unidad_var = tk.DoubleVar(value=0.0)
+        self.precio_kilo_var = tk.DoubleVar(value=0.0)
 
-        tk.Label(self, text="Cantidad").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(self, text="Precio por unidad").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(self, textvariable=self.precio_unidad_var, relief="sunken", width=20).grid(row=1, column=1, sticky="w", padx=5)
+
+        tk.Label(self, text="Precio por kilo").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(self, textvariable=self.precio_kilo_var, relief="sunken", width=20).grid(row=2, column=1, sticky="w", padx=5)
+        
+        frame_cantidad_total = tk.Frame(self)
+        frame_cantidad_total.grid(row=1, column=0, columnspan=3, pady=5)
+
+        tk.Label(frame_cantidad_total, text="Cantidad").pack(side="left", padx=5)
         self.cantidad_var = tk.IntVar(value=1)
-        tk.Spinbox(self, from_=1, to=1000, textvariable=self.cantidad_var).grid(row=1, column=1)
+        tk.Spinbox(frame_cantidad_total, from_=1, to=1000, textvariable=self.cantidad_var, width=10).pack(side="left", padx=5)
 
-        tk.Label(self, text="Total a pagar").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(frame_cantidad_total, text="Total a pagar").pack(side="left", padx=5)
         self.total_var = tk.DoubleVar(value=0.0)
-        tk.Entry(self, textvariable=self.total_var, state="readonly").grid(row=2, column=1)
+        tk.Entry(frame_cantidad_total, textvariable=self.total_var, state="readonly", width=15).pack(side="left", padx=5)
 
         tk.Label(self, text="Tipo venta").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         self.tipo_venta_var = tk.StringVar(value="unidad")
         ttk.Combobox(self, textvariable=self.tipo_venta_var, values=["unidad","kilo"], state="readonly").grid(row=3, column=1)
 
         tk.Button(self, text="Agregar ítem", command=self._agregar_item).grid(row=4, column=0, pady=10)
-        tk.Button(self, text="Resetear ítems", command=self._reset_items).grid(row=4, column=1, pady=10)
-        tk.Button(self, text="Finalizar venta", command=self._registrar).grid(row=4, column=2, pady=10)
+        tk.Button(self, text="Resetear ítems", command=self._reset_items).grid(row=4, column=2, pady=10)
+        tk.Button(self, text="Finalizar venta", command=self._registrar).grid(row=4, column=1, pady=10)
         # --- Listado de ventas ---
         self.tree_ventas = ttk.Treeview(self, columns=("id", "usuario", "fecha", "total"), show="headings")
         self.tree_ventas.heading("id", text="ID Venta")
@@ -93,16 +102,17 @@ class VentasView(tk.Frame):
         self._cargar_ventas()
 
     def _agregar_item(self):
-        seleccionado = self.producto_combo.get()
-        if not seleccionado:
+        producto_texto = self.producto_var.get()
+        if not producto_texto or producto_texto == "(ningún producto seleccionado)":
             alerts.error("Debe seleccionar un producto")
             return
-        id_producto = int(seleccionado.split(" - ")[0])
-        producto = self.controller.get_producto(id_producto)
+        id_producto = int(producto_texto.split(" - ")[0])
+
         if self.tipo_venta_var.get() == "unidad":
-            precio = producto["precio_unidad"]
+            precio = self.precio_unidad_var.get()
         else:
-            precio = producto["precio_kilo"]
+            precio = self.precio_kilo_var.get()
+
         item = {
             "id_producto": id_producto,
             "cantidad": self.cantidad_var.get(),
@@ -110,12 +120,9 @@ class VentasView(tk.Frame):
             "precio_unitario": precio,
             "subtotal": self.cantidad_var.get() * precio
         }
-        
-        # 🔥 Agregar ítem a la lista
+
         self.detalle_actual.append(item)
-        # 🔥 Actualizar el total acumulado en el campo "Total a pagar"
         self.total_var.set(sum(i["subtotal"] for i in self.detalle_actual))
-        # Mostrar aviso
         alerts.info(f"Item agregado: {item}")
 
     def _registrar(self):
@@ -230,3 +237,47 @@ class VentasView(tk.Frame):
         ventas_detalladas = self.controller.ventas_con_detalle(ventas)
         alerts.info(f"Total vendido semana: {resumen['total_vendido']} | Ganancia: {resumen['ganancia']}")
         self._exportar_excel(resumen, ventas_detalladas)
+
+    def _abrir_buscador(self):
+        popup = tk.Toplevel(self)
+        popup.title("Buscar producto")
+        popup.geometry("700x400")
+
+        tk.Label(popup, text="Filtrar:").pack(pady=5)
+        filtro_var = tk.StringVar()
+        filtro_entry = tk.Entry(popup, textvariable=filtro_var)
+        filtro_entry.pack(fill="x", padx=10)
+
+        tree = ttk.Treeview(popup, columns=("id", "nombre", "stock"), show="headings")
+        tree.heading("id", text="ID")
+        tree.heading("nombre", text="Producto")
+        tree.heading("stock", text="Stock")
+        tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+        productos = self.controller.listar_productos()
+
+        def cargar_productos(filtro=""):
+            for row in tree.get_children():
+                tree.delete(row)
+            for p in productos:
+                nombre = f"{p['tipo']} {p['medida']} {p['largo'] or ''}"
+                if filtro.lower() in nombre.lower():
+                    tree.insert("", "end", values=(p["id_producto"], nombre, p["stock"]))
+
+        cargar_productos()
+        filtro_var.trace_add("write", lambda *args: cargar_productos(filtro_var.get()))
+
+        def seleccionar():
+            sel = tree.selection()
+            if sel:
+                values = tree.item(sel[0])["values"]
+                id_producto = values[0]
+                producto = self.controller.get_producto(id_producto)
+                # 🔥 Mostrar producto seleccionado
+                self.producto_var.set(f"{id_producto} - {values[1]}")
+                # 🔥 Mostrar precios automáticamente
+                self.precio_unidad_var.set(producto["precio_unidad"])
+                self.precio_kilo_var.set(producto["precio_kilo"])
+                popup.destroy()
+
+        tk.Button(popup, text="Seleccionar", command=seleccionar).pack(pady=5)

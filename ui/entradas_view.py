@@ -14,16 +14,11 @@ class EntradasView(tk.Frame):
 
     def _build(self):
         # --- Formulario de registro ---
-        # Producto
-        tk.Label(self, text="Producto").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        self.producto_combo = ttk.Combobox(
-            self,
-            values=[f"{pid} - {nombre}" for pid, nombre in self.productos],
-            state="readonly", width=50
-        )
-        self.producto_combo.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
-        # permitir expansión
-        self.grid_columnconfigure(1, weight=1)
+        # 🔥 Campo para mostrar producto seleccionado
+        self.producto_var = tk.StringVar(value="(ningún producto seleccionado)")
+        tk.Label(self, text="Producto seleccionado:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        tk.Label(self, textvariable=self.producto_var, anchor="w", width=50, relief="sunken").grid(row=0, column=1, sticky="ew", padx=5, pady=5)
+        tk.Button(self, text="Buscar producto", command=self._abrir_buscador).grid(row=0, column=2, padx=5)
 
         # Cantidad
         tk.Label(self, text="Cantidad").grid(row=1, column=0, sticky="e", padx=5, pady=5)
@@ -69,9 +64,9 @@ class EntradasView(tk.Frame):
         self._cargar_entradas()
 
     def _registrar(self):
-        producto_texto = self.producto_combo.get()
+        producto_texto = self.producto_var.get()
         proveedor_texto = self.proveedor_combo.get()
-        if not producto_texto or not proveedor_texto:
+        if not producto_texto or not proveedor_texto or producto_texto == "(ningún producto seleccionado)":
             alerts.error("Debe seleccionar producto y proveedor")
             return
 
@@ -104,3 +99,42 @@ class EntradasView(tk.Frame):
                 e["proveedor"],  # nombre del proveedor desde JOIN
                 e["fecha"]
             ))
+
+    def _abrir_buscador(self):
+        popup = tk.Toplevel(self)
+        popup.title("Buscar producto")
+        popup.geometry("700x400")
+
+        tk.Label(popup, text="Filtrar:").pack(pady=5)
+        filtro_var = tk.StringVar()
+        filtro_entry = tk.Entry(popup, textvariable=filtro_var)
+        filtro_entry.pack(fill="x", padx=10)
+
+        tree = ttk.Treeview(popup, columns=("id", "nombre", "stock"), show="headings")
+        tree.heading("id", text="ID")
+        tree.heading("nombre", text="Producto")
+        tree.heading("stock", text="Stock")
+        tree.pack(fill="both", expand=True, padx=10, pady=10)
+
+        productos = self.controller.obtener_productos()
+
+        def cargar_productos(filtro=""):
+            for row in tree.get_children():
+                tree.delete(row)
+            for pid, nombre in productos:
+                # productos viene como [(id, "tipo medida largo"), ...]
+                if filtro.lower() in nombre.lower():
+                    # aquí podrías también mostrar stock si lo incluyes en el repo
+                    tree.insert("", "end", values=(pid, nombre, ""))
+
+        cargar_productos()
+        filtro_var.trace_add("write", lambda *args: cargar_productos(filtro_var.get()))
+
+        def seleccionar():
+            sel = tree.selection()
+            if sel:
+                values = tree.item(sel[0])["values"]
+                self.producto_var.set(f"{values[0]} - {values[1]}")
+                popup.destroy()
+
+        tk.Button(popup, text="Seleccionar", command=seleccionar).pack(pady=5)

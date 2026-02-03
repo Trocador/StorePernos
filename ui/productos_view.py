@@ -18,11 +18,11 @@ class ProductosView(tk.Frame):
         ttk.Combobox(self, textvariable=self.tipo_var, values=tipos, state="readonly").grid(row=0, column=1)
 
         tk.Label(self, text="Abreviatura").grid(row=1, column=0, sticky="e", padx=5, pady=5)
-        self.medida_var = tk.StringVar(value="M8")
+        self.medida_var = tk.StringVar(value="PER HEX 8.8 CTE C/T")
         tk.Entry(self, textvariable=self.medida_var).grid(row=1, column=1)
 
         tk.Label(self, text="Cabeza y métrica").grid(row=2, column=0, sticky="e", padx=5, pady=5)
-        self.largo_var = tk.StringVar(value="30mm")
+        self.largo_var = tk.StringVar(value="M12 X 25")
         tk.Entry(self, textvariable=self.largo_var).grid(row=2, column=1)
 
         tk.Label(self, text="Material").grid(row=3, column=0, sticky="e", padx=5, pady=5)

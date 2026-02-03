@@ -39,7 +39,6 @@ class VentasController:
         with SafeConnection(lambda: self.conn_factory()) as conn:
             return ventas_repo.get_venta_detalle(conn, id_venta)
 
-    # 🔥 Nuevo método
     def listar_productos(self):
         with SafeConnection(lambda: self.conn_factory()) as conn:
             return productos_repo.list_productos(conn)
