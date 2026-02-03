@@ -1,5 +1,5 @@
 # ui/devoluciones_controller.py
-from database.repositories import devoluciones_repo, ventas_repo
+from database.repositories import devoluciones_repo, ventas_repo, productos_repo
 from utils.db import SafeConnection
 
 class DevolucionesController:
@@ -8,7 +8,7 @@ class DevolucionesController:
         self.on_info = on_info
         self.on_error = on_error
 
-    def registrar(self, id_venta, id_producto, cantidad, id_usuario, observacion=""):
+    def registrar(self, id_venta, id_producto, cantidad, id_usuario, observacion="", reinserta_stock=False):
         try:
             with SafeConnection(lambda: self.conn_factory()) as conn:
                 devoluciones_repo.create_devolucion(
@@ -19,6 +19,9 @@ class DevolucionesController:
                     id_producto,
                     cantidad
                 )
+                if reinserta_stock:
+                    productos_repo.sumar_stock(conn, id_producto, cantidad)
+
             self.on_info("Devolución registrada")
             return True
         except Exception as e:
@@ -36,3 +39,7 @@ class DevolucionesController:
     def ventas_por_fecha(self, fecha):
         with SafeConnection(lambda: self.conn_factory()) as conn:
             return ventas_repo.list_ventas_por_fecha(conn, fecha)
+
+    def listar_productos(self):
+        with SafeConnection(lambda: self.conn_factory()) as conn:
+            return productos_repo.list_productos(conn)
