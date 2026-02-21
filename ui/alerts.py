@@ -1,3 +1,4 @@
+# ui/alerts.py
 from tkinter import messagebox
 
 def info(msg, title="Información"):

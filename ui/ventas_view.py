@@ -81,7 +81,7 @@ class VentasView(tk.Frame):
         self.tree_detalle.configure(yscroll=scrollbar2.set)
         scrollbar2.grid(row=6, column=2, sticky="ns")
         
-        # 🔒 PANEL SOLO ADMIN
+        # PANEL SOLO ADMIN
         if self.user["rol"] == "admin":
             frame_reportes = tk.LabelFrame(self, text="Reportes de Control (Admin)")
             frame_reportes.grid(row=7, column=0, columnspan=3, sticky="ew", pady=10)
@@ -161,7 +161,7 @@ class VentasView(tk.Frame):
             self.tree_detalle.insert("", "end", values=(
                 d["id_detalle"],
                 d["id_producto"],
-                d["producto"],   # 🔥 ahora muestra nombre
+                d["producto"],
                 d["cantidad"],
                 d["tipo_venta"],
                 d["precio_unitario"],
@@ -273,9 +273,9 @@ class VentasView(tk.Frame):
                 values = tree.item(sel[0])["values"]
                 id_producto = values[0]
                 producto = self.controller.get_producto(id_producto)
-                # 🔥 Mostrar producto seleccionado
+                # Mostrar producto seleccionado
                 self.producto_var.set(f"{id_producto} - {values[1]}")
-                # 🔥 Mostrar precios automáticamente
+                # Mostrar precios automáticamente
                 self.precio_unidad_var.set(producto["precio_unidad"])
                 self.precio_kilo_var.set(producto["precio_kilo"])
                 popup.destroy()

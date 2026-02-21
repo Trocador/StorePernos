@@ -15,7 +15,7 @@ class UsuariosController:
             return False
 
         try:
-            with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
+            with SafeConnection(lambda: self.conn_factory()) as conn: 
                 usuarios_repo.create_usuario(
                     conn,
                     (usuario, hash_password(password), rol, 1)  # activo=1 por defecto
@@ -27,5 +27,5 @@ class UsuariosController:
             return False
 
     def listar(self):
-        with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
+        with SafeConnection(lambda: self.conn_factory()) as conn: 
             return usuarios_repo.list_usuarios(conn)

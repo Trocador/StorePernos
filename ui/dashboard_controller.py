@@ -14,7 +14,7 @@ class DashboardController:
             self.on_error("Tipo y stock deben ser válidos")
             return False
 
-        with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅ factory → conexión real
+        with SafeConnection(lambda: self.conn_factory()) as conn:  # factory → conexión real
             productos_repo.create_producto(
                 conn, (tipo, "M8", "30mm", "acero", 1.5, stock, 2)
             )
@@ -28,7 +28,7 @@ class DashboardController:
 
         detalles = [{"id_producto": id_producto, "cantidad": cantidad, "precio_unitario": precio}]
         try:
-            with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
+            with SafeConnection(lambda: self.conn_factory()) as conn:  #
                 registrar_venta(id_usuario, detalles, conn=conn)
             self.on_info("Venta registrada correctamente")
             return True

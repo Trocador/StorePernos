@@ -1,3 +1,4 @@
+# ui/proveedores_controller.py
 from database.repositories import proveedores_repo
 from utils.db import SafeConnection
 

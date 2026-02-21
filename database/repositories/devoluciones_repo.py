@@ -29,7 +29,7 @@ def list_devoluciones(conn):
 def list_detalle(conn, id_devolucion):
     sql = """
     SELECT dd.id_detalle,
-           dd.id_producto,   -- 🔥 añadir este campo
+           dd.id_producto,   -- añadir este campo
            (p.tipo || ' ' || p.medida || ' ' || IFNULL(p.largo,'')) AS producto,
            dd.cantidad
     FROM devolucion_detalle dd

@@ -35,7 +35,7 @@ class ProductosController:
         if not fields:
             self.on_error("Sin cambios")
             return False
-        with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
+        with SafeConnection(lambda: self.conn_factory()) as conn:  
             ok = productos_repo.update_producto(conn, id_producto, fields)
         if not ok:
             self.on_error("Producto no encontrado")
@@ -44,7 +44,7 @@ class ProductosController:
         return True
 
     def eliminar(self, id_producto, borrado_logico=True):
-        with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
+        with SafeConnection(lambda: self.conn_factory()) as conn:  
             if borrado_logico:
                 ok = productos_repo.update_producto(conn, id_producto, {"activo": 0})
             else:
@@ -72,5 +72,5 @@ class ProductosController:
             return []
 
     def obtener(self, id_producto):
-        with SafeConnection(lambda: self.conn_factory()) as conn:  # ✅
+        with SafeConnection(lambda: self.conn_factory()) as conn:
             return productos_repo.get_producto(conn, id_producto)

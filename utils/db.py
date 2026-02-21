@@ -26,7 +26,7 @@ class SafeConnection:
         return conn
 
     def __enter__(self):
-        # 🔥 Aquí devolvemos la conexión real
+        # Aquí devolvemos la conexión real
         self.conn = self.conn_factory()
         return self.conn
 
