@@ -1,11 +1,10 @@
-# ui/alerts.py
-from tkinter import messagebox
+import ttkbootstrap.dialogs as dialogs
 
 def info(msg, title="Información"):
-    messagebox.showinfo(title, msg)
+    dialogs.Messagebox.show_info(message=msg, title=title)
 
 def warning(msg, title="Advertencia"):
-    messagebox.showwarning(title, msg)
+    dialogs.Messagebox.show_warning(message=msg, title=title)
 
 def error(msg, title="Error"):
-    messagebox.showerror(title, msg)
+    dialogs.Messagebox.show_error(message=msg, title=title)

@@ -1,4 +1,5 @@
 # ui/devoluciones_view.py
+from operator import index
 import tkinter as tk
 from tkinter import ttk
 import tkcalendar
@@ -32,6 +33,9 @@ class DevolucionesView(tk.Frame):
         for col in ("idVenta", "fecha", "total"):
             self.tree_ventas.heading(col, text=col.capitalize())
         self.tree_ventas.grid(row=1, column=0, columnspan=3, sticky="nsew", pady=10)
+        self.tree_ventas.tag_configure("oddrow", background="#f8f9fa")
+        self.tree_ventas.tag_configure("evenrow", background="#ffffff")
+
         # Boton buscar producto
         tk.Button(self, text="Buscar producto", command=self._abrir_buscador).grid(row=2, column=2, padx=5)
         self.producto_var = tk.StringVar(value="(ningún producto seleccionado)")
@@ -59,6 +63,8 @@ class DevolucionesView(tk.Frame):
         for col in ("idDevolucion", "venta", "fecha", "usuario", "obs"):
             self.tree_devoluciones.heading(col, text=col.capitalize())
         self.tree_devoluciones.grid(row=6, column=0, columnspan=2, sticky="nsew", pady=10)
+        self.tree_devoluciones.tag_configure("oddrow", background="#f8f9fa")
+        self.tree_devoluciones.tag_configure("evenrow", background="#ffffff")
 
         # --- Listado de detalle ---
         self.tree_detalle = ttk.Treeview(
@@ -70,6 +76,8 @@ class DevolucionesView(tk.Frame):
         self.tree_detalle.heading("producto", text="Producto")
         self.tree_detalle.heading("cantidad", text="Cantidad")
         self.tree_detalle.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=10)
+        self.tree_detalle.tag_configure("oddrow", background="#f8f9fa")
+        self.tree_detalle.tag_configure("evenrow", background="#ffffff")
 
         self.tree_devoluciones.bind("<<TreeviewSelect>>", self._mostrar_detalle)
 
@@ -112,14 +120,11 @@ class DevolucionesView(tk.Frame):
             self.tree_devoluciones.delete(row)
 
         devoluciones = self.controller.listar()
-        for d in devoluciones:
+        for index, d in enumerate(devoluciones):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
             self.tree_devoluciones.insert("", "end", values=(
-                d["id_devolucion"],
-                d["id_venta"],
-                d["fecha"],
-                d["id_usuario"],
-                d["observacion"]
-            ))
+                d["id_devolucion"], d["id_venta"], d["fecha"], d["id_usuario"], d["observacion"]
+            ), tags=(tag,))
 
     def _mostrar_detalle(self, event):
         for row in self.tree_detalle.get_children():
@@ -131,9 +136,9 @@ class DevolucionesView(tk.Frame):
         id_devolucion = self.tree_devoluciones.item(selected[0])["values"][0]
 
         detalles = self.controller.detalle(id_devolucion)
-        for det in detalles:
-            # 🔥 Ahora insertamos también el id_producto
-            self.tree_detalle.insert("", "end", values=(det["id_producto"], det["producto"], det["cantidad"]))
+        for index, det in enumerate(detalles):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            self.tree_detalle.insert("", "end", values=(det["id_producto"], det["producto"], det["cantidad"]), tags=(tag,))
     
     def _buscar_ventas(self):
         fecha = self.fecha_var.get()
@@ -142,8 +147,9 @@ class DevolucionesView(tk.Frame):
         for row in self.tree_ventas.get_children():
             self.tree_ventas.delete(row)
 
-        for v in ventas:
-            self.tree_ventas.insert("", "end", values=(v["id_venta"], v["fecha"], v["total"]))
+        for index, v in enumerate(ventas):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            self.tree_ventas.insert("", "end", values=(v["id_venta"], v["fecha"], v["total"]), tags=(tag,))
 
     def _abrir_buscador(self):
         popup = tk.Toplevel(self)

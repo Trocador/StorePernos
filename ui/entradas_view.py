@@ -50,6 +50,8 @@ class EntradasView(tk.Frame):
         self.tree.heading("fecha", text="Fecha")
 
         self.tree.grid(row=4, column=0, columnspan=2, sticky="nsew", pady=10)
+        self.tree.tag_configure("oddrow", background="#f8f9fa")
+        self.tree.tag_configure("evenrow", background="#ffffff")
 
         # Scrollbar
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
@@ -91,14 +93,11 @@ class EntradasView(tk.Frame):
             self.tree.delete(row)
 
         entradas = self.controller.listar()
-        for e in entradas:
+        for index, e in enumerate(entradas):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
             self.tree.insert("", "end", values=(
-                e["id_entrada"],
-                e["producto"],   # nombre del producto desde JOIN
-                e["cantidad"],
-                e["proveedor"],  # nombre del proveedor desde JOIN
-                e["fecha"]
-            ))
+                e["id_entrada"], e["producto"], e["cantidad"], e["proveedor"], e["fecha"]
+            ), tags=(tag,))
 
     def _abrir_buscador(self):
         popup = tk.Toplevel(self)

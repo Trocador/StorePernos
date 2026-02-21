@@ -40,6 +40,8 @@ class UsuariosView(tk.Frame):
         self.tree.heading("usuario", text="Usuario")
         self.tree.heading("rol", text="Rol")
         self.tree.grid(row=4, column=0, columnspan=2, sticky="nsew", pady=10)
+        self.tree.tag_configure("oddrow", background="#f8f9fa")
+        self.tree.tag_configure("evenrow", background="#ffffff")
 
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
@@ -71,5 +73,6 @@ class UsuariosView(tk.Frame):
             self.tree.delete(row)
 
         usuarios = self.controller.listar()
-        for u in usuarios:
-            self.tree.insert("", "end", values=(u["id_usuario"], u["usuario"], u["rol"]))
+        for index, u in enumerate(usuarios):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            self.tree.insert("", "end", values=(u["id_usuario"], u["usuario"], u["rol"]), tags=(tag,))

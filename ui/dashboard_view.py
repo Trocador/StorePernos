@@ -8,9 +8,7 @@ from ui.devoluciones_view import DevolucionesView
 from ui.usuarios_view import UsuariosView
 from ui.usuarios_controller import UsuariosController
 from ui.entradas_controller import EntradasController
-from ui.entradas_view import EntradasView
 from ui.devoluciones_controller import DevolucionesController
-from ui.login_view import LoginView
 from ui.productos_controller import ProductosController
 from ui.ventas_controller import VentasController
 from ui.proveedores_controller import ProveedoresController
@@ -32,16 +30,77 @@ class DashboardView(tk.Frame):
         # --- Barra superior con botón de logout ---
         top_bar = tk.Frame(self)
         top_bar.pack(fill="x")
-        
+
         tk.Button(top_bar, text="Crear Backup", command=self._crear_backup).pack(side="right", padx=10)
         tk.Button(top_bar, text="Restaurar Backup", command=self._restaurar_backup).pack(side="right", padx=10)
 
         tk.Label(top_bar, text=f"Usuario: {self.user['id_usuario']} ({self.user['rol']})").pack(side="left", padx=10)
         tk.Button(top_bar, text="Cerrar sesión", command=self._logout).pack(side="right", padx=10)
 
-        # --- Notebook con pestañas ---
-        notebook = ttk.Notebook(self)
-        notebook.pack(fill="both", expand=True)
+        # --- Contenedor principal ---
+        self.container = ttk.Frame(self)
+        self.container.pack(fill="both", expand=True)
+
+        # --- Menú lateral ---
+        self.sidebar = ttk.Frame(self.container, width=220)
+        self.sidebar.pack(side="left", fill="y")
+
+        # Botones del menú lateral (conexión con pestañas)
+        self.btn_productos = ttk.Button(self.sidebar, text="📦 Productos", command=lambda: self._select_tab("Productos"))
+        self.btn_productos.pack(fill="x", pady=5, padx=10)
+
+        self.btn_ventas = ttk.Button(self.sidebar, text="💰 Ventas", command=lambda: self._select_tab("Ventas"))
+        self.btn_ventas.pack(fill="x", pady=5, padx=10)
+
+        self.btn_devoluciones = ttk.Button(self.sidebar, text="↩ Devoluciones", command=lambda: self._select_tab("Devoluciones"))
+        self.btn_devoluciones.pack(fill="x", pady=5, padx=10)
+
+        if self.user["rol"] == "admin":
+            self.btn_proveedores = ttk.Button(self.sidebar, text="👥 Proveedores", command=lambda: self._select_tab("Proveedores"))
+            self.btn_proveedores.pack(fill="x", pady=5, padx=10)
+
+            self.btn_entradas = ttk.Button(self.sidebar, text="📥 Entradas", command=lambda: self._select_tab("Entradas"))
+            self.btn_entradas.pack(fill="x", pady=5, padx=10)
+
+            self.btn_usuarios = ttk.Button(self.sidebar, text="👤 Usuarios", command=lambda: self._select_tab("Usuarios"))
+            self.btn_usuarios.pack(fill="x", pady=5, padx=10)
+
+        # --- Área de contenido ---
+        self.content = ttk.Frame(self.container)
+        self.content.pack(side="right", fill="both", expand=True)
+        
+        # --- Tarjetas KPI ---
+        self.kpi_frame = ttk.Frame(self.content)
+        self.kpi_frame.pack(fill="x", pady=10)
+
+        kpis = self.controller.obtener_kpis()
+
+        # Ventas del día
+        card_ventas = ttk.Frame(self.kpi_frame, bootstyle="success", padding=15)
+        card_ventas.pack(side="left", padx=10)
+        ttk.Label(card_ventas, text="Ventas Hoy", font=("Segoe UI", 10)).pack()
+        ttk.Label(card_ventas, text=f"Bs {kpis['ventas_hoy']}", font=("Segoe UI", 18, "bold")).pack()
+
+        # Stock bajo
+        card_stock = ttk.Frame(self.kpi_frame, bootstyle="danger", padding=15)
+        card_stock.pack(side="left", padx=10)
+        ttk.Label(card_stock, text="Stock Bajo", font=("Segoe UI", 10)).pack()
+        ttk.Label(card_stock, text=f"{kpis['stock_bajo']} productos", font=("Segoe UI", 18, "bold")).pack()
+
+        # Productos totales
+        card_productos = ttk.Frame(self.kpi_frame, bootstyle="info", padding=15)
+        card_productos.pack(side="left", padx=10)
+        ttk.Label(card_productos, text="Productos Totales", font=("Segoe UI", 10)).pack()
+        ttk.Label(card_productos, text=f"{kpis['productos_totales']}", font=("Segoe UI", 18, "bold")).pack()
+
+        # Promociones activas
+        card_promos = ttk.Frame(self.kpi_frame, bootstyle="warning", padding=15)
+        card_promos.pack(side="left", padx=10)
+        ttk.Label(card_promos, text="Promociones Activas", font=("Segoe UI", 10)).pack()
+        ttk.Label(card_promos, text=f"{kpis['promociones_activas']}", font=("Segoe UI", 18, "bold")).pack()
+        # Notebook dentro del área de contenido
+        self.notebook = ttk.Notebook(self.content)
+        self.notebook.pack(fill="both", expand=True)
 
         # --- Pestañas según rol ---
         if self.user["rol"] == "admin":
@@ -53,8 +112,8 @@ class DashboardView(tk.Frame):
             )
             with SafeConnection(lambda: self.controller.conn_factory()) as conn:
                 proveedores = [(p["id_proveedor"], p["nombre"]) for p in proveedores_repo.list_proveedores(conn)]
-            self.productos_view = ProductosView(notebook, productos_controller, proveedores)
-            notebook.add(self.productos_view, text="Productos")
+            self.productos_view = ProductosView(self.notebook, productos_controller, proveedores)
+            self.notebook.add(self.productos_view, text="Productos")
 
             # Proveedores
             proveedores_controller = ProveedoresController(
@@ -62,7 +121,7 @@ class DashboardView(tk.Frame):
                 on_info=self.controller.on_info,
                 on_error=self.controller.on_error
             )
-            notebook.add(ProveedoresView(notebook, proveedores_controller), text="Proveedores")
+            self.notebook.add(ProveedoresView(self.notebook, proveedores_controller), text="Proveedores")
 
             # Entradas
             entradas_controller = EntradasController(
@@ -75,13 +134,13 @@ class DashboardView(tk.Frame):
                 proveedores = proveedores_repo.get_all(conn)
                 productos = productos_repo.get_all(conn)
             entradas_view = EntradasView(
-                notebook,
+                self.notebook,
                 entradas_controller,
                 proveedores,
                 productos,
                 self.user
             )
-            notebook.add(entradas_view, text="Entradas")
+            self.notebook.add(entradas_view, text="Entradas")
 
             # Usuarios
             usuarios_controller = UsuariosController(
@@ -89,8 +148,8 @@ class DashboardView(tk.Frame):
                 on_info=self.controller.on_info,
                 on_error=self.controller.on_error
             )
-            usuarios_view = UsuariosView(notebook, usuarios_controller, self.user)
-            notebook.add(usuarios_view, text="Usuarios")
+            usuarios_view = UsuariosView(self.notebook, usuarios_controller, self.user)
+            self.notebook.add(usuarios_view, text="Usuarios")
 
         # Ventas (visible para todos)
         ventas_controller = VentasController(
@@ -99,7 +158,7 @@ class DashboardView(tk.Frame):
             on_error=self.controller.on_error,
             on_productos_updated=self.refrescar_productos
         )
-        notebook.add(VentasView(notebook, ventas_controller, self.user), text="Ventas")
+        self.notebook.add(VentasView(self.notebook, ventas_controller, self.user), text="Ventas")
 
         # Devoluciones (visible para todos)
         devoluciones_controller = DevolucionesController(
@@ -110,12 +169,19 @@ class DashboardView(tk.Frame):
         with self.controller.conn_factory() as conn:
             productos = productos_repo.get_all(conn)
         devoluciones_view = DevolucionesView(
-            notebook,
+            self.notebook,
             devoluciones_controller,
             productos,
             self.user
         )
-        notebook.add(devoluciones_view, text="Devoluciones")
+        self.notebook.add(devoluciones_view, text="Devoluciones")
+
+    def _select_tab(self, tab_name):
+        """Selecciona la pestaña del Notebook según el nombre"""
+        for idx in range(len(self.notebook.tabs())):
+            if self.notebook.tab(idx, "text") == tab_name:
+                self.notebook.select(idx)
+                break
 
     def refrescar_productos(self):
         with SafeConnection(lambda: self.controller.conn_factory()) as conn:
@@ -140,13 +206,11 @@ class DashboardView(tk.Frame):
             from config.settings import BACKUP_DIR
             from utils import backup
 
-            #  Buscar todos los backups disponibles
             files = sorted(glob.glob(str(BACKUP_DIR / "inventario_*.db")))
             if not files:
                 self.controller.on_error("No hay backups disponibles")
                 return
 
-            #  Abrir diálogo para que el usuario elija el backup
             backup_file = filedialog.askopenfilename(
                 title="Seleccionar backup para restaurar",
                 initialdir=BACKUP_DIR,
@@ -157,7 +221,6 @@ class DashboardView(tk.Frame):
                 self.controller.on_info("Restauración cancelada por el usuario")
                 return
 
-            #  Restaurar el backup seleccionado
             backup.restore_backup(backup_file)
             self.controller.on_info(f"Backup restaurado correctamente desde {backup_file}")
 

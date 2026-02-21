@@ -1,5 +1,6 @@
 # ui/dashboard_controller.py
-from database.repositories import productos_repo
+import datetime
+from database.repositories import productos_repo, ventas_repo
 from services.ventas_service import registrar_venta
 from utils.db import SafeConnection
 
@@ -35,3 +36,41 @@ class DashboardController:
         except ValueError as e:
             self.on_error(str(e))
             return False
+    
+    def obtener_kpis(self):
+        """Devuelve métricas clave para el Dashboard"""
+        try:
+            with SafeConnection(lambda: self.conn_factory()) as conn:
+                # 🔹 Ventas del día (suma de total)
+                hoy = datetime.date.today().strftime("%Y-%m-%d")
+                ventas_hoy = ventas_repo.get_total_ventas_rango(conn, hoy, hoy)
+
+                # 🔹 Stock bajo (ejemplo: productos con stock < stock_minimo)
+                cur = conn.execute("SELECT COUNT(*) as cnt FROM productos WHERE stock < stock_minimo AND activo=1")
+                stock_bajo = cur.fetchone()["cnt"]
+
+                # 🔹 Productos totales
+                cur = conn.execute("SELECT COUNT(*) as cnt FROM productos WHERE activo=1")
+                productos_totales = cur.fetchone()["cnt"]
+
+                # 🔹 Promociones activas (si tienes tabla promociones, aquí se consulta)
+                try:
+                    cur = conn.execute("SELECT COUNT(*) as cnt FROM promociones WHERE activa=1")
+                    promociones_activas = cur.fetchone()["cnt"]
+                except Exception:
+                    promociones_activas = 0
+
+            return {
+                "ventas_hoy": ventas_hoy,
+                "stock_bajo": stock_bajo,
+                "productos_totales": productos_totales,
+                "promociones_activas": promociones_activas
+            }
+        except Exception as e:
+            self.on_error(f"Error al obtener KPIs: {e}")
+            return {
+                "ventas_hoy": 0,
+                "stock_bajo": 0,
+                "productos_totales": 0,
+                "promociones_activas": 0
+            }

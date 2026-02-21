@@ -57,6 +57,9 @@ class VentasView(tk.Frame):
         self.tree_ventas.heading("fecha", text="Fecha")
         self.tree_ventas.heading("total", text="Total")
         self.tree_ventas.grid(row=5, column=0, columnspan=2, sticky="nsew", pady=10)
+        self.tree_ventas.tag_configure("oddrow", background="#f8f9fa")
+        self.tree_ventas.tag_configure("evenrow", background="#ffffff")
+
 
         scrollbar1 = ttk.Scrollbar(self, orient="vertical", command=self.tree_ventas.yview)
         self.tree_ventas.configure(yscroll=scrollbar1.set)
@@ -76,6 +79,9 @@ class VentasView(tk.Frame):
         self.tree_detalle.heading("precio_unitario", text="Precio Unitario")
         self.tree_detalle.heading("subtotal", text="Subtotal")
         self.tree_detalle.grid(row=6, column=0, columnspan=2, sticky="nsew", pady=10)
+        self.tree_detalle.tag_configure("oddrow", background="#f8f9fa")
+        self.tree_detalle.tag_configure("evenrow", background="#ffffff")
+
 
         scrollbar2 = ttk.Scrollbar(self, orient="vertical", command=self.tree_detalle.yview)
         self.tree_detalle.configure(yscroll=scrollbar2.set)
@@ -144,8 +150,9 @@ class VentasView(tk.Frame):
             self.tree_ventas.delete(row)
 
         ventas = self.controller.listar()
-        for v in ventas:
-            self.tree_ventas.insert("", "end", values=(v["id_venta"], v["id_usuario"], v["fecha"], v["total"]))
+        for index, v in enumerate(ventas):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            self.tree_ventas.insert("", "end", values=(v["id_venta"], v["usuario"], v["fecha"], v["total"]), tags=(tag,))
 
     def _mostrar_detalle(self, event):
         for row in self.tree_detalle.get_children():
@@ -157,7 +164,8 @@ class VentasView(tk.Frame):
         id_venta = self.tree_ventas.item(selected[0])["values"][0]
 
         detalles = self.controller.detalle(id_venta)
-        for d in detalles:
+        for index, d in enumerate(detalles):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
             self.tree_detalle.insert("", "end", values=(
                 d["id_detalle"],
                 d["id_producto"],
@@ -166,7 +174,7 @@ class VentasView(tk.Frame):
                 d["tipo_venta"],
                 d["precio_unitario"],
                 d["subtotal"]
-            ))
+            ), tags=(tag,))
 
     def _reset_items(self):
         self.detalle_actual.clear()

@@ -1,17 +1,17 @@
 # ui/app.py
-import tkinter as tk
+import ttkbootstrap as ttk
 from utils.db import SafeConnection, create_connection
 from ui.login_view import LoginView
 from ui.login_controller import LoginController
 from ui.dashboard_view import DashboardView
 from ui.dashboard_controller import DashboardController
-from tkinter import messagebox
+from ttkbootstrap.constants import *
 
 conn_factory = create_connection
 
-class App(tk.Tk):
+class App(ttk.Window):
     def __init__(self, conn_factory):
-        super().__init__()
+        super().__init__(themename="flatly")
         self.title("Tienda Pernos")
         self.geometry("1800x700")
 

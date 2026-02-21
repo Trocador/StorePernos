@@ -1,4 +1,5 @@
 # ui/productos_view.py
+from operator import index
 import tkinter as tk
 from tkinter import ttk
 from ui import alerts
@@ -71,6 +72,8 @@ class ProductosView(tk.Frame):
 
 
         self.tree.grid(row=10, column=0, columnspan=2, sticky="nsew", pady=10)
+        self.tree.tag_configure("oddrow", background="#f8f9fa")
+        self.tree.tag_configure("evenrow", background="#ffffff")
 
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
@@ -109,20 +112,22 @@ class ProductosView(tk.Frame):
             self.tree.delete(row)
 
         productos = self.controller.listar()
-        for row in productos:
+        for index, row in enumerate(productos):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
             self.tree.insert("", "end", values=(
-            row["tipo"], row["medida"], row["largo"], row["material"],
-            row["precio_unidad"], row["precio_kilo"],
-            row["stock"], row["stock_minimo"], row["proveedor"]  # ✅ nombre
-        ))
+                row["tipo"], row["medida"], row["largo"], row["material"],
+                row["precio_unidad"], row["precio_kilo"],
+                row["stock"], row["stock_minimo"], row["proveedor"]
+            ), tags=(tag,))
 
     def actualizar_productos(self, productos):
         for row in self.tree.get_children():
             self.tree.delete(row)
 
-        for p in productos:
+        for index, p in enumerate(productos):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
             self.tree.insert("", "end", values=(
                 p["tipo"], p["medida"], p["largo"], p["material"],
                 p["precio_unidad"], p["precio_kilo"],
                 p["stock"], p["stock_minimo"], p["proveedor"]
-            ))
+            ), tags=(tag,))

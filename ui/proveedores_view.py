@@ -28,6 +28,8 @@ class ProveedoresView(tk.Frame):
         self.tree.heading("contacto", text="Contacto")
         self.tree.heading("activo", text="Activo")
         self.tree.grid(row=3, column=0, columnspan=2, sticky="nsew")
+        self.tree.tag_configure("oddrow", background="#f8f9fa")
+        self.tree.tag_configure("evenrow", background="#ffffff")
 
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
@@ -50,5 +52,6 @@ class ProveedoresView(tk.Frame):
         for row in self.tree.get_children():
             self.tree.delete(row)
         proveedores = self.controller.listar()
-        for p in proveedores:
-            self.tree.insert("", "end", values=(p["id_proveedor"], p["nombre"], p["contacto"], p["activo"]))
+        for index, p in enumerate(proveedores):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            self.tree.insert("", "end", values=(p["id_proveedor"], p["nombre"], p["contacto"], p["activo"]), tags=(tag,))
