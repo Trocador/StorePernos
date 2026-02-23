@@ -1,6 +1,7 @@
 # ui/dashboard_view.py
+from PIL import Image, ImageTk
 import tkinter as tk
-from tkinter import ttk
+import ttkbootstrap as tb
 from ui.productos_view import ProductosView
 from ui.ventas_view import VentasView
 from ui.entradas_view import EntradasView
@@ -18,7 +19,7 @@ from utils.db import SafeConnection
 from utils.backup import create_backup, restore_backup
 from database.repositories import proveedores_repo, productos_repo
 
-class DashboardView(tk.Frame):
+class DashboardView(tb.Frame):
     def __init__(self, master, controller, user, on_logout):
         super().__init__(master)
         self.controller = controller
@@ -38,68 +39,100 @@ class DashboardView(tk.Frame):
         tk.Button(top_bar, text="Cerrar sesión", command=self._logout).pack(side="right", padx=10)
 
         # --- Contenedor principal ---
-        self.container = ttk.Frame(self)
+        self.container = tb.Frame(self)
         self.container.pack(fill="both", expand=True)
 
         # --- Menú lateral ---
-        self.sidebar = ttk.Frame(self.container, width=220)
+        self.sidebar = tb.Frame(self.container, width=220)
         self.sidebar.pack(side="left", fill="y")
 
+        # Cargar íconos PNG
+        self.icon_productos = ImageTk.PhotoImage(Image.open("icons/caja.png").resize((20,20)))
+        self.icon_ventas = ImageTk.PhotoImage(Image.open("icons/carrito-de-compras.png").resize((20,20)))
+        self.icon_devoluciones = ImageTk.PhotoImage(Image.open("icons/devolucion-de-dinero.png").resize((20,20)))
+        self.icon_proveedores = ImageTk.PhotoImage(Image.open("icons/proveedor.png").resize((20,20)))
+        self.icon_entradas = ImageTk.PhotoImage(Image.open("icons/caja-entrada.png").resize((20,20)))
+        self.icon_usuarios = ImageTk.PhotoImage(Image.open("icons/agregar-usuario.png").resize((20,20)))
+
         # Botones del menú lateral (conexión con pestañas)
-        self.btn_productos = ttk.Button(self.sidebar, text="📦 Productos", command=lambda: self._select_tab("Productos"))
+        self.btn_productos = tb.Button(
+            self.sidebar, text="Productos", image=self.icon_productos,
+            compound="left", bootstyle="secondary-outline",
+            command=lambda: self._select_tab("Productos")
+        )
         self.btn_productos.pack(fill="x", pady=5, padx=10)
 
-        self.btn_ventas = ttk.Button(self.sidebar, text="💰 Ventas", command=lambda: self._select_tab("Ventas"))
+        self.btn_ventas = tb.Button(
+            self.sidebar, text="Ventas", image=self.icon_ventas,
+            compound="left", bootstyle="secondary-outline",
+            command=lambda: self._select_tab("Ventas")
+        )
         self.btn_ventas.pack(fill="x", pady=5, padx=10)
 
-        self.btn_devoluciones = ttk.Button(self.sidebar, text="↩ Devoluciones", command=lambda: self._select_tab("Devoluciones"))
+        self.btn_devoluciones = tb.Button(
+            self.sidebar, text="Devoluciones", image=self.icon_devoluciones,
+            compound="left", bootstyle="secondary-outline",
+            command=lambda: self._select_tab("Devoluciones")
+        )
         self.btn_devoluciones.pack(fill="x", pady=5, padx=10)
 
         if self.user["rol"] == "admin":
-            self.btn_proveedores = ttk.Button(self.sidebar, text="👥 Proveedores", command=lambda: self._select_tab("Proveedores"))
+            self.btn_proveedores = tb.Button(
+                self.sidebar, text="Proveedores", image=self.icon_proveedores,
+                compound="left", bootstyle="secondary-outline",
+                command=lambda: self._select_tab("Proveedores")
+            )
             self.btn_proveedores.pack(fill="x", pady=5, padx=10)
 
-            self.btn_entradas = ttk.Button(self.sidebar, text="📥 Entradas", command=lambda: self._select_tab("Entradas"))
+            self.btn_entradas = tb.Button(
+                self.sidebar, text="Entradas", image=self.icon_entradas,
+                compound="left", bootstyle="secondary-outline",
+                command=lambda: self._select_tab("Entradas")
+            )
             self.btn_entradas.pack(fill="x", pady=5, padx=10)
 
-            self.btn_usuarios = ttk.Button(self.sidebar, text="👤 Usuarios", command=lambda: self._select_tab("Usuarios"))
+            self.btn_usuarios = tb.Button(
+                self.sidebar, text="Usuarios", image=self.icon_usuarios,
+                compound="left", bootstyle="secondary-outline",
+                command=lambda: self._select_tab("Usuarios")
+            )
             self.btn_usuarios.pack(fill="x", pady=5, padx=10)
 
         # --- Área de contenido ---
-        self.content = ttk.Frame(self.container)
+        self.content = tb.Frame(self.container)
         self.content.pack(side="right", fill="both", expand=True)
         
         # --- Tarjetas KPI ---
-        self.kpi_frame = ttk.Frame(self.content)
+        self.kpi_frame = tb.Frame(self.content)
         self.kpi_frame.pack(fill="x", pady=10)
 
         kpis = self.controller.obtener_kpis()
 
         # Ventas del día
-        card_ventas = ttk.Frame(self.kpi_frame, bootstyle="success", padding=15)
+        card_ventas = tb.Frame(self.kpi_frame, bootstyle="success", padding=15)
         card_ventas.pack(side="left", padx=10)
-        ttk.Label(card_ventas, text="Ventas Hoy", font=("Segoe UI", 10)).pack()
-        ttk.Label(card_ventas, text=f"Bs {kpis['ventas_hoy']}", font=("Segoe UI", 18, "bold")).pack()
+        tb.Label(card_ventas, text="Ventas Hoy", font=("Segoe UI", 10)).pack()
+        tb.Label(card_ventas, text=f"Bs {kpis['ventas_hoy']}", font=("Segoe UI", 18, "bold")).pack()
 
         # Stock bajo
-        card_stock = ttk.Frame(self.kpi_frame, bootstyle="danger", padding=15)
+        card_stock = tb.Frame(self.kpi_frame, bootstyle="danger", padding=15)
         card_stock.pack(side="left", padx=10)
-        ttk.Label(card_stock, text="Stock Bajo", font=("Segoe UI", 10)).pack()
-        ttk.Label(card_stock, text=f"{kpis['stock_bajo']} productos", font=("Segoe UI", 18, "bold")).pack()
+        tb.Label(card_stock, text="Stock Bajo", font=("Segoe UI", 10)).pack()
+        tb.Label(card_stock, text=f"{kpis['stock_bajo']} productos", font=("Segoe UI", 18, "bold")).pack()
 
         # Productos totales
-        card_productos = ttk.Frame(self.kpi_frame, bootstyle="info", padding=15)
+        card_productos = tb.Frame(self.kpi_frame, bootstyle="info", padding=15)
         card_productos.pack(side="left", padx=10)
-        ttk.Label(card_productos, text="Productos Totales", font=("Segoe UI", 10)).pack()
-        ttk.Label(card_productos, text=f"{kpis['productos_totales']}", font=("Segoe UI", 18, "bold")).pack()
+        tb.Label(card_productos, text="Productos Totales", font=("Segoe UI", 10)).pack()
+        tb.Label(card_productos, text=f"{kpis['productos_totales']}", font=("Segoe UI", 18, "bold")).pack()
 
         # Promociones activas
-        card_promos = ttk.Frame(self.kpi_frame, bootstyle="warning", padding=15)
+        card_promos = tb.Frame(self.kpi_frame, bootstyle="warning", padding=15)
         card_promos.pack(side="left", padx=10)
-        ttk.Label(card_promos, text="Promociones Activas", font=("Segoe UI", 10)).pack()
-        ttk.Label(card_promos, text=f"{kpis['promociones_activas']}", font=("Segoe UI", 18, "bold")).pack()
+        tb.Label(card_promos, text="Promociones Activas", font=("Segoe UI", 10)).pack()
+        tb.Label(card_promos, text=f"{kpis['promociones_activas']}", font=("Segoe UI", 18, "bold")).pack()
         # Notebook dentro del área de contenido
-        self.notebook = ttk.Notebook(self.content)
+        self.notebook = tb.Notebook(self.content)
         self.notebook.pack(fill="both", expand=True)
 
         # --- Pestañas según rol ---

@@ -1,6 +1,6 @@
 # ui/usuarios_view.py
 import tkinter as tk
-from tkinter import ttk
+import ttkbootstrap as tb
 from ui import alerts
 
 class UsuariosView(tk.Frame):
@@ -21,17 +21,17 @@ class UsuariosView(tk.Frame):
         tk.Entry(self, textvariable=self.password_var, show="*").grid(row=1, column=1)
 
         tk.Label(self, text="Rol").grid(row=2, column=0, sticky="e", padx=5, pady=5)
-        self.rol_combo = ttk.Combobox(
+        self.rol_combo = tb.Combobox(
             self,
             values=["admin", "vendedor"],  # ✅ solo dos roles
             state="readonly"
         )
         self.rol_combo.grid(row=2, column=1)
 
-        tk.Button(self, text="Crear usuario", command=self._crear_usuario).grid(row=3, column=0, columnspan=2, pady=10)
+        tb.Button(self, text="Crear usuario", bootstyle="success", command=self._crear_usuario).grid(row=3, column=0, columnspan=2, pady=10)
 
         # --- Listado de usuarios ---
-        self.tree = ttk.Treeview(
+        self.tree = tb.Treeview(
             self,
             columns=("id_usuario", "usuario", "rol"),
             show="headings"
@@ -43,7 +43,7 @@ class UsuariosView(tk.Frame):
         self.tree.tag_configure("oddrow", background="#f8f9fa")
         self.tree.tag_configure("evenrow", background="#ffffff")
 
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        scrollbar = tb.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=4, column=2, sticky="ns")
 

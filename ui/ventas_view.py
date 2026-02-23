@@ -1,11 +1,11 @@
 # ui/ventas_view.py
 from importlib.resources import path
 import tkinter as tk
-from tkinter import ttk
 from tkinter import filedialog
 from ui import alerts
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
+import ttkbootstrap as tb
 
 class VentasView(tk.Frame):
     def __init__(self, master, controller, user):
@@ -21,7 +21,7 @@ class VentasView(tk.Frame):
         self.producto_var = tk.StringVar(value="(ningún producto seleccionado)")
         tk.Label(self, text="Producto seleccionado:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         tk.Label(self, textvariable=self.producto_var, anchor="w", width=50, relief="sunken").grid(row=0, column=1, sticky="ew", padx=5, pady=5)
-        tk.Button(self, text="Buscar producto", command=self._abrir_buscador).grid(row=0, column=2, padx=5)
+        tb.Button(self, text="Buscar producto", bootstyle="secondary-outline", command=self._abrir_buscador).grid(row=0, column=2, padx=5)
 
         self.precio_unidad_var = tk.DoubleVar(value=0.0)
         self.precio_kilo_var = tk.DoubleVar(value=0.0)
@@ -45,13 +45,13 @@ class VentasView(tk.Frame):
 
         tk.Label(self, text="Tipo venta").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         self.tipo_venta_var = tk.StringVar(value="unidad")
-        ttk.Combobox(self, textvariable=self.tipo_venta_var, values=["unidad","kilo"], state="readonly").grid(row=3, column=1)
+        tb.Combobox(self, textvariable=self.tipo_venta_var, values=["unidad","kilo"], state="readonly").grid(row=3, column=1)
 
-        tk.Button(self, text="Agregar ítem", command=self._agregar_item).grid(row=4, column=0, pady=10)
-        tk.Button(self, text="Resetear ítems", command=self._reset_items).grid(row=4, column=2, pady=10)
-        tk.Button(self, text="Finalizar venta", command=self._registrar).grid(row=4, column=1, pady=10)
+        tb.Button(self, text="Agregar ítem", bootstyle="info", command=self._agregar_item).grid(row=4, column=0, pady=10)
+        tb.Button(self, text="Resetear ítems", bootstyle="warning-outline", command=self._reset_items).grid(row=4, column=2, pady=10)
+        tb.Button(self, text="Finalizar venta", bootstyle="success", command=self._registrar).grid(row=4, column=1, pady=10)
         # --- Listado de ventas ---
-        self.tree_ventas = ttk.Treeview(self, columns=("id", "usuario", "fecha", "total"), show="headings")
+        self.tree_ventas = tb.Treeview(self, columns=("id", "usuario", "fecha", "total"), show="headings")
         self.tree_ventas.heading("id", text="ID Venta")
         self.tree_ventas.heading("usuario", text="Usuario")
         self.tree_ventas.heading("fecha", text="Fecha")
@@ -61,12 +61,12 @@ class VentasView(tk.Frame):
         self.tree_ventas.tag_configure("evenrow", background="#ffffff")
 
 
-        scrollbar1 = ttk.Scrollbar(self, orient="vertical", command=self.tree_ventas.yview)
+        scrollbar1 = tb.Scrollbar(self, orient="vertical", command=self.tree_ventas.yview)
         self.tree_ventas.configure(yscroll=scrollbar1.set)
         scrollbar1.grid(row=5, column=2, sticky="ns")
 
         # --- Listado de detalle ---
-        self.tree_detalle = ttk.Treeview(
+        self.tree_detalle = tb.Treeview(
             self,
             columns=("id_detalle", "id_producto", "producto", "cantidad", "tipo_venta", "precio_unitario", "subtotal"),
             show="headings"
@@ -83,7 +83,7 @@ class VentasView(tk.Frame):
         self.tree_detalle.tag_configure("evenrow", background="#ffffff")
 
 
-        scrollbar2 = ttk.Scrollbar(self, orient="vertical", command=self.tree_detalle.yview)
+        scrollbar2 = tb.Scrollbar(self, orient="vertical", command=self.tree_detalle.yview)
         self.tree_detalle.configure(yscroll=scrollbar2.set)
         scrollbar2.grid(row=6, column=2, sticky="ns")
         
@@ -253,10 +253,10 @@ class VentasView(tk.Frame):
 
         tk.Label(popup, text="Filtrar:").pack(pady=5)
         filtro_var = tk.StringVar()
-        filtro_entry = tk.Entry(popup, textvariable=filtro_var)
+        filtro_entry = tb.Entry(popup, textvariable=filtro_var, bootstyle="info")
         filtro_entry.pack(fill="x", padx=10)
-
-        tree = ttk.Treeview(popup, columns=("id", "nombre", "stock"), show="headings")
+        filtro_entry.insert(0, "🔍 Buscar producto...")
+        tree = tb.Treeview(popup, columns=("id", "nombre", "stock"), show="headings")
         tree.heading("id", text="ID")
         tree.heading("nombre", text="Producto")
         tree.heading("stock", text="Stock")

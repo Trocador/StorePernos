@@ -1,6 +1,6 @@
 # ui/entradas_view.py
+import ttkbootstrap as tb
 import tkinter as tk
-from tkinter import ttk
 from ui import alerts
 
 class EntradasView(tk.Frame):
@@ -18,7 +18,7 @@ class EntradasView(tk.Frame):
         self.producto_var = tk.StringVar(value="(ningún producto seleccionado)")
         tk.Label(self, text="Producto seleccionado:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         tk.Label(self, textvariable=self.producto_var, anchor="w", width=50, relief="sunken").grid(row=0, column=1, sticky="ew", padx=5, pady=5)
-        tk.Button(self, text="Buscar producto", command=self._abrir_buscador).grid(row=0, column=2, padx=5)
+        tb.Button(self, text="Buscar producto", bootstyle="secondary-outline", command=self._abrir_buscador).grid(row=0, column=2, padx=5)
 
         # Cantidad
         tk.Label(self, text="Cantidad").grid(row=1, column=0, sticky="e", padx=5, pady=5)
@@ -27,7 +27,7 @@ class EntradasView(tk.Frame):
 
         # Proveedor
         tk.Label(self, text="Proveedor").grid(row=2, column=0, sticky="e", padx=5, pady=5)
-        self.proveedor_combo = ttk.Combobox(
+        self.proveedor_combo = tb.Combobox(
             self,
             values=[f"{pid} - {nombre}" for pid, nombre in self.proveedores],
             state="readonly"
@@ -35,10 +35,10 @@ class EntradasView(tk.Frame):
         self.proveedor_combo.grid(row=2, column=1)
 
         # Botón registrar
-        tk.Button(self, text="Registrar entrada", command=self._registrar).grid(row=3, column=0, columnspan=2, pady=10)
+        tb.Button(self, text="Registrar entrada", bootstyle="success", command=self._registrar).grid(row=3, column=0, columnspan=2, pady=10)
 
         # --- Listado de entradas ---
-        self.tree = ttk.Treeview(
+        self.tree = tb.Treeview(
             self,
             columns=("id", "producto", "cantidad", "proveedor", "fecha"),
             show="headings"
@@ -52,9 +52,10 @@ class EntradasView(tk.Frame):
         self.tree.grid(row=4, column=0, columnspan=2, sticky="nsew", pady=10)
         self.tree.tag_configure("oddrow", background="#f8f9fa")
         self.tree.tag_configure("evenrow", background="#ffffff")
+        self.tree.tag_configure("lowstock", background="#f8d7da")
 
         # Scrollbar
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        scrollbar = tb.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=4, column=2, sticky="ns")
 
@@ -93,10 +94,21 @@ class EntradasView(tk.Frame):
             self.tree.delete(row)
 
         entradas = self.controller.listar()
+
         for index, e in enumerate(entradas):
-            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            # Decidir el tag
+            if e["stock"] < e["stock_minimo"]:
+                tag = "lowstock"
+            else:
+                tag = "evenrow" if index % 2 == 0 else "oddrow"
+
+            # Insertar fila
             self.tree.insert("", "end", values=(
-                e["id_entrada"], e["producto"], e["cantidad"], e["proveedor"], e["fecha"]
+                e["id_entrada"],
+                e["producto"],   # nombre del producto desde JOIN
+                e["cantidad"],
+                e["proveedor"],  # nombre del proveedor desde JOIN
+                e["fecha"]
             ), tags=(tag,))
 
     def _abrir_buscador(self):
@@ -106,10 +118,10 @@ class EntradasView(tk.Frame):
 
         tk.Label(popup, text="Filtrar:").pack(pady=5)
         filtro_var = tk.StringVar()
-        filtro_entry = tk.Entry(popup, textvariable=filtro_var)
+        filtro_entry = tb.Entry(popup, textvariable=filtro_var, bootstyle="info")
         filtro_entry.pack(fill="x", padx=10)
-
-        tree = ttk.Treeview(popup, columns=("id", "nombre", "stock"), show="headings")
+        filtro_entry.insert(0, "🔍 Buscar producto...")
+        tree = tb.Treeview(popup, columns=("id", "nombre", "stock"), show="headings")
         tree.heading("id", text="ID")
         tree.heading("nombre", text="Producto")
         tree.heading("stock", text="Stock")

@@ -1,7 +1,7 @@
 # ui/productos_view.py
+import ttkbootstrap as tb
 from operator import index
 import tkinter as tk
-from tkinter import ttk
 from ui import alerts
 
 class ProductosView(tk.Frame):
@@ -16,7 +16,7 @@ class ProductosView(tk.Frame):
         tk.Label(self, text="Tipo de producto").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         tipos = ["tuerca", "perno", "tornillo", "varilla", "remache", "arandela"]
         self.tipo_var = tk.StringVar(value=tipos[0])
-        ttk.Combobox(self, textvariable=self.tipo_var, values=tipos, state="readonly").grid(row=0, column=1)
+        tb.Combobox(self, textvariable=self.tipo_var, values=tipos, state="readonly").grid(row=0, column=1)
 
         tk.Label(self, text="Abreviatura").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.medida_var = tk.StringVar(value="PER HEX 8.8 CTE C/T")
@@ -48,13 +48,13 @@ class ProductosView(tk.Frame):
 
         tk.Label(self, text="Proveedor").grid(row=8, column=0, sticky="e", padx=5, pady=5)
         proveedores_nombres = [f"{pid} - {nombre}" for pid, nombre in self.proveedores]
-        self.proveedor_combo = ttk.Combobox(self, values=proveedores_nombres, state="readonly")
+        self.proveedor_combo = tb.Combobox(self, values=proveedores_nombres, state="readonly")
         self.proveedor_combo.grid(row=8, column=1)
 
-        tk.Button(self, text="Crear producto", command=self._crear).grid(row=9, column=0, columnspan=2, pady=10)
+        tb.Button(self, text="Crear producto", bootstyle="success", command=self._crear).grid(row=9, column=0, columnspan=2, pady=10)
 
         # --- Listado de productos ---
-        self.tree = ttk.Treeview(self, columns=(
+        self.tree = tb.Treeview(self, columns=(
             "tipo", "medida", "largo", "material",
             "precio_unidad", "precio_kilo",
             "stock", "stock_minimo", "proveedor"
@@ -74,8 +74,9 @@ class ProductosView(tk.Frame):
         self.tree.grid(row=10, column=0, columnspan=2, sticky="nsew", pady=10)
         self.tree.tag_configure("oddrow", background="#f8f9fa")
         self.tree.tag_configure("evenrow", background="#ffffff")
+        self.tree.tag_configure("lowstock", background="#f8d7da")
 
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        scrollbar = tb.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=10, column=2, sticky="ns")
 
@@ -113,7 +114,13 @@ class ProductosView(tk.Frame):
 
         productos = self.controller.listar()
         for index, row in enumerate(productos):
-            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            # Decidir el tag
+            if row["stock"] < row["stock_minimo"]:
+                tag = "lowstock"
+            else:
+                tag = "evenrow" if index % 2 == 0 else "oddrow"
+
+            # Insertar una sola vez
             self.tree.insert("", "end", values=(
                 row["tipo"], row["medida"], row["largo"], row["material"],
                 row["precio_unidad"], row["precio_kilo"],

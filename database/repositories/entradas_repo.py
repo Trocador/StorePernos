@@ -14,12 +14,14 @@ def create_entrada_detalle(conn, id_entrada, id_producto, cantidad, tipo_ingreso
 def list_entradas(conn):
     sql = """
     SELECT e.id_entrada,
-           e.fecha,
-           pr.nombre AS proveedor,
-           e.id_usuario,
-           e.observacion,
-           (p.tipo || ' ' || p.medida || ' ' || IFNULL(p.largo,'')) AS producto,
-           ed.cantidad
+        e.fecha,
+        pr.nombre AS proveedor,
+        e.id_usuario,
+        e.observacion,
+        (p.tipo || ' ' || p.medida || ' ' || IFNULL(p.largo,'')) AS producto,
+        ed.cantidad,
+        p.stock,
+        p.stock_minimo
     FROM entradas e
     JOIN proveedores pr ON e.id_proveedor = pr.id_proveedor
     JOIN entrada_detalle ed ON e.id_entrada = ed.id_entrada

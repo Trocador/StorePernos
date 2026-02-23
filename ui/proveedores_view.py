@@ -1,6 +1,6 @@
 # ui/proveedores_view.py
 import tkinter as tk
-from tkinter import ttk
+import ttkbootstrap as tb
 from ui import alerts
 
 class ProveedoresView(tk.Frame):
@@ -19,10 +19,10 @@ class ProveedoresView(tk.Frame):
         self.contacto_var = tk.StringVar()
         tk.Entry(self, textvariable=self.contacto_var).grid(row=1, column=1)
 
-        tk.Button(self, text="Agregar proveedor", command=self._crear).grid(row=2, column=0, columnspan=2, pady=10)
+        tb.Button(self, text="Agregar proveedor", bootstyle="success", command=self._crear).grid(row=2, column=0, columnspan=2, pady=10)
 
         # --- Listado ---
-        self.tree = ttk.Treeview(self, columns=("id", "nombre", "contacto", "activo"), show="headings")
+        self.tree = tb.Treeview(self, columns=("id", "nombre", "contacto", "activo"), show="headings")
         self.tree.heading("id", text="ID")
         self.tree.heading("nombre", text="Nombre")
         self.tree.heading("contacto", text="Contacto")
@@ -31,7 +31,7 @@ class ProveedoresView(tk.Frame):
         self.tree.tag_configure("oddrow", background="#f8f9fa")
         self.tree.tag_configure("evenrow", background="#ffffff")
 
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        scrollbar = tb.Scrollbar(self, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=3, column=2, sticky="ns")
 

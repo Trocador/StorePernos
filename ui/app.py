@@ -1,21 +1,21 @@
 # ui/app.py
-import ttkbootstrap as ttk
+import ttkbootstrap as tb
 from utils.db import SafeConnection, create_connection
 from ui.login_view import LoginView
 from ui.login_controller import LoginController
 from ui.dashboard_view import DashboardView
 from ui.dashboard_controller import DashboardController
 from ttkbootstrap.constants import *
-
+from ttkbootstrap.dialogs import Messagebox
 conn_factory = create_connection
 
-class App(ttk.Window):
+class App(tb.Window):
     def __init__(self, conn_factory):
         super().__init__(themename="flatly")
         self.title("Tienda Pernos")
         self.geometry("1800x700")
 
-        # ✅ guardar la fábrica de conexiones
+        #  guardar la fábrica de conexiones
         self.conn_factory = conn_factory
 
         # siempre inicia con login
@@ -48,12 +48,10 @@ class App(ttk.Window):
 
     # Métodos auxiliares para mensajes
     def _show_info(self, msg):
-        messagebox.showinfo("Información", msg)
-        print("INFO:", msg)
+        Messagebox.show_info(message=msg, title="Información")
 
     def _show_error(self, msg):
-        messagebox.showerror("Error", msg)
-        print("ERROR:", msg)
+        Messagebox.show_error(message=msg, title="Error")
 
 if __name__ == "__main__":
     App(conn_factory).mainloop()

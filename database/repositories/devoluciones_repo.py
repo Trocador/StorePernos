@@ -29,9 +29,11 @@ def list_devoluciones(conn):
 def list_detalle(conn, id_devolucion):
     sql = """
     SELECT dd.id_detalle,
-           dd.id_producto,   -- añadir este campo
-           (p.tipo || ' ' || p.medida || ' ' || IFNULL(p.largo,'')) AS producto,
-           dd.cantidad
+        dd.id_producto,
+        (p.tipo || ' ' || p.medida || ' ' || IFNULL(p.largo,'')) AS producto,
+        dd.cantidad,
+        p.stock,
+        p.stock_minimo
     FROM devolucion_detalle dd
     JOIN productos p ON dd.id_producto = p.id_producto
     WHERE dd.id_devolucion = ?
