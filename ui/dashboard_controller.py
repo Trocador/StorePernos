@@ -27,7 +27,13 @@ class DashboardController:
             self.on_error("Cantidad y precio deben ser positivos")
             return False
 
-        detalles = [{"id_producto": id_producto, "cantidad": cantidad, "precio_unitario": precio}]
+        detalles = [{
+            "id_producto": id_producto,
+            "cantidad": cantidad,
+            "precio_unitario": precio,
+            "subtotal": cantidad * precio,   # calcular subtotal
+            "tipo_venta": "unidad"           # o "kilo", según tu lógica
+        }]
         try:
             with SafeConnection(lambda: self.conn_factory()) as conn:  #
                 registrar_venta(id_usuario, detalles, conn=conn)

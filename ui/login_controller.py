@@ -12,17 +12,21 @@ class LoginController:
             with self.conn_factory() as conn:
                 row = usuarios_repo.get_usuario(conn, usuario)
 
-                if row and verify_password(password, row["password_hash"]):
-                    user = {
-                        "id_usuario": row["id_usuario"],
-                        "usuario": row["usuario"],
-                        "rol": row["rol"]
-                    }
-                    self.on_success(user)
-                    return True
-                else:
-                    print("Credenciales inválidas")
+                if not row:
                     return False
+
+                if not verify_password(password, row["password_hash"]):
+                    return False
+
+                user = {
+                    "id_usuario": row["id_usuario"],
+                    "usuario": row["usuario"],
+                    "rol": row["rol"]
+                }
+
+                self.on_success(user)
+                return True
+
         except Exception as e:
             print("Error en login:", e)
             return False

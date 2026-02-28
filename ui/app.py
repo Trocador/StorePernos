@@ -7,7 +7,6 @@ from ui.dashboard_view import DashboardView
 from ui.dashboard_controller import DashboardController
 from ttkbootstrap.constants import *
 from ttkbootstrap.dialogs import Messagebox
-conn_factory = create_connection
 
 class App(tb.Window):
     def __init__(self, conn_factory):
@@ -52,6 +51,3 @@ class App(tb.Window):
 
     def _show_error(self, msg):
         Messagebox.show_error(message=msg, title="Error")
-
-if __name__ == "__main__":
-    App(conn_factory).mainloop()

@@ -2,10 +2,9 @@
 from operator import index
 import tkinter as tk
 import ttkbootstrap as tb
-import tkcalendar
 from ui import alerts
 
-class DevolucionesView(tk.Frame):
+class DevolucionesView(tb.Frame):
     def __init__(self, master, controller, productos, user):
         super().__init__(master)
         self.controller = controller
@@ -16,13 +15,21 @@ class DevolucionesView(tk.Frame):
 
     def _build(self):
         # --- Formulario de registro ---
-        # --- Selección de fecha ---
-        tk.Label(self, text="Fecha de venta").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.fecha_var = tk.StringVar()
-        self.fecha_entry = tkcalendar.DateEntry(self, textvariable=self.fecha_var, date_pattern="yyyy-mm-dd")
-        self.fecha_entry.grid(row=0, column=1)
 
-        tb.Button(self, text="Buscar ventas", bootstyle="secondary-outline", command=self._buscar_ventas).grid(row=0, column=2, padx=5)
+        self.fecha_entry = tb.DateEntry(
+            self,
+            bootstyle="secondary",
+            dateformat="%Y-%m-%d"
+        )
+        self.fecha_entry.grid(row=0, column=0, padx=5, pady=10, sticky="w")
+
+        tb.Button(
+            self,
+            text="Buscar ventas del día",
+            bootstyle="secondary-outline",
+            command=self._buscar_ventas
+        ).grid(row=0, column=1, padx=5, pady=10, sticky="w")
 
         # --- Tabla de ventas del día ---
         self.tree_ventas = tb.Treeview(
@@ -95,7 +102,7 @@ class DevolucionesView(tk.Frame):
             return
         id_producto = int(producto_texto.split(" - ")[0])
 
-        # 🔥 Obtener id_venta desde la tabla de ventas seleccionada
+        #  Obtener id_venta desde la tabla de ventas seleccionada
         selected = self.tree_ventas.selection()
         if not selected:
             alerts.error("Debe seleccionar una venta de la tabla")
@@ -213,3 +220,19 @@ class DevolucionesView(tk.Frame):
                 popup.destroy()
 
         tk.Button(popup, text="Seleccionar", command=seleccionar).pack(pady=5)
+
+    def _buscar_ventas(self):
+        fecha = self.fecha_entry.get_date().strftime("%Y-%m-%d")
+        ventas = self.controller.ventas_por_fecha(fecha)
+
+        for row in self.tree_ventas.get_children():
+           self.tree_ventas.delete(row)
+
+        for index, v in enumerate(ventas):
+            tag = "evenrow" if index % 2 == 0 else "oddrow"
+            self.tree_ventas.insert(
+                "",
+                "end",
+                values=(v["id_venta"], v["fecha"], v["total"]),
+                tags=(tag,)
+            )

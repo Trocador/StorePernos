@@ -9,7 +9,7 @@ class VentasController:
         self.conn_factory = conn_factory
         self.on_info = on_info
         self.on_error = on_error
-        self.on_productos_updated = on_productos_updated  # 🔥 nuevo atributo opcional
+        self.on_productos_updated = on_productos_updated  #  nuevo atributo opcional
 
     def registrar(self, id_usuario, items):
         if not items:
@@ -23,7 +23,7 @@ class VentasController:
             with SafeConnection(lambda: self.conn_factory()) as conn:
                 registrar_venta(id_usuario, items, conn=conn)
             self.on_info("Venta registrada")
-            if self.on_productos_updated:   # 🔥 solo si existe
+            if self.on_productos_updated:   #  solo si existe
                 self.on_productos_updated()
             return True
         except ValueError as e:
